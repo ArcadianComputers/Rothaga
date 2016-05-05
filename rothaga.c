@@ -16,7 +16,7 @@
 
 int main (int argc, char **argv)
 {
-	printf("Welcome to %s version 0.1 alpha\n",argv[0]);
+	printf("Welcome to %s version 0.2 alpha\n",argv[0]);
 
 	/* load_config(CONFIG_FILE) */
 	/* find_clients() */
