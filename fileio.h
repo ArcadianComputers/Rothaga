@@ -13,7 +13,9 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h> 
 
 void load_config(char *);
+void kill_server(int);
 
 #endif /* FILEIO_H_ */
