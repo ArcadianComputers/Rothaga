@@ -21,5 +21,23 @@
 #include <netdb.h>      /* gethostbyaddr() */
 #include <fcntl.h> /* fcntl() */
 
+typedef struct client
+{
+        int s;                                  /* communication socket */
+        char *b;                                /* communication buffer */
+        int nc;                                 /* index position in com buffer */
+
+} RothagaClient;
+
+typedef struct server
+{
+        int sp;                                 /* server port */
+        struct sockaddr_in sin;                 /* socket structure */
+
+} RothagaServer;
+
+RothagaClient *find_free_client(RothagaClient *);
+int parse_client_command(RothagaClient *);
+int kill_client(RothagaClient *);
 
 #endif /* NETIO_H_ */
