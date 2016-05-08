@@ -22,21 +22,21 @@ int main(int argc, char **argv)
 	RothagaServer rs[MAX_SRVS];		/* array of server structures */
 	RothagaClient rc[MAX_CLIS];		/* array of client structures */
 
-	signal(SIGINT, kill_server);		/* stop the server on Ctrl-C */
+/*	signal(SIGINT, kill_server);		*//* stop the server on Ctrl-C */
 
 	for (i = 0; i < MAX_CLIS; i++) 		/* clear out client and server arrays */
 	{
-		memset(rc[i],0,sizeof(rc));
-		memset(rs[i],0,sizeof(rs));
+		memset(&rc[i],0,sizeof(rc));
+		memset(&rs[i],0,sizeof(rs));
 	}
 
 	for (i = 0; i < MAX_CLIS; i++) 		/* clear out client and server arrays */
 	{
 		c = &rc[i];
 
-		c.b = malloc(CLI_BUFR);
+		c->b = malloc(CLI_BUFR);
 
-		if (c.b == NULL)
+		if (c->b == NULL)
 		{
 			perror("malloc(): ");
 			exit(-1);
@@ -45,27 +45,27 @@ int main(int argc, char **argv)
 
 	s = &rs[0];				/* pointer to current server */
 
-	s.sp = socket(AF_INET,SOCK_STREAM,0);
+	s->sp = socket(AF_INET,SOCK_STREAM,0);
 
-	if (s.sp == -1)
+	if (s->sp == -1)
 	{
 		perror("socket()");
 		exit(-1);
 	}
 
-	fcntl(s.sp,F_SETFL,O_NONBLOCK);		/* non-block i/o */
+	fcntl(s->sp,F_SETFL,O_NONBLOCK);	/* non-block i/o */
 
-	if (setsockopt(s.sp,SOL_SOCKET,SO_REUSEADDR,&ra,sizeof(ra)) == -1)
+	if (setsockopt(s->sp,SOL_SOCKET,SO_REUSEADDR,&ra,sizeof(ra)) == -1)
 	{
 		perror("setsockopt(): ");	/* set the listening port reuseable to prevent TIME_WAIT blocking */
 		return -1;
 	}
 
-	s.sin.sin_family = AF_INET;		/* address family */
-	s.sin.sin_port = htons(SRV_PORT); 	/* tcp port to listen on */
-	s.sin.sin_addr.s_addr = INADDR_ANY; 	/* listen on all interfaces */
+	s->sin.sin_family = AF_INET;		/* address family */
+	s->sin.sin_port = htons(SRV_PORT); 	/* tcp port to listen on */
+	s->sin.sin_addr.s_addr = INADDR_ANY; 	/* listen on all interfaces */
 
-	re = bind(s.sp, (struct sockaddr *) &s.sin,sizeof(s.sin));
+	re = bind(s->sp, (struct sockaddr *) &s->sin,sizeof(&s->sin));
 		
 	if (re == -1)
 	{
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	re = listen(s.sp,5);			/* hard-wired back log */
+	re = listen(s->sp,5);			/* hard-wired back log */
 
 	if (re == -1)
 	{
@@ -95,10 +95,10 @@ int main(int argc, char **argv)
 
 		else
 		{
-			c.s = accept(s.sp,NULL,NULL);
+			c->s = accept(s->sp,NULL,NULL);
 		}
 
-		if (c.s == -1)
+		if (c->s == -1)
 		{
 			if (errno != EAGAIN)
 			{
@@ -106,32 +106,32 @@ int main(int argc, char **argv)
 			}
 		}
 
-		else if (c.s > 0)
+		else if (c->s > 0)
 		{
-			fcntl(c.s,F_SETFL,O_NONBLOCK); /* non-block i/o */
+			fcntl(c->s,F_SETFL,O_NONBLOCK); /* non-block i/o */
 		}
 
 		for (i = 0; i < MAX_CLIS; i++)
 		{
 			c = &rc[i];
 
-			if (c.s > 0) rx = read(c.s,x,1);
+			if (c->s > 0) rx = read(c->s,x,1);
 		
 			if (rx == 1)
 			{
-				if (c.nc > CLI_BUFR)		/* buffer overflow attempt -Jon */
+				if (c->nc > CLI_BUFR)		/* buffer overflow attempt -Jon */
 				{
 					kill_client(c);
 					continue;
 				}
 
-				c.b[c.nc] = x;
-				c.nc++;
+				c->b[c->nc] = x[0];
+				c->nc++;
 
 				if (x[0] >= 32) printf("Got a byte: \"%s\"\t[%i]\n",x,x[0]);
 				else if (x[0] < 32 || x[0] > 126) printf("Got a byte: \"\"\t[%i]\n",x[0]);
 
-				if ((x == 10) && (c.b[c.nc-1] == 13)) 
+				if ((x[0] == 10) && (c->b[c->nc-1] == 13)) 
 				{
 					parse_client_command(c);
 				}
@@ -151,14 +151,14 @@ int parse_client_command(RothagaClient *c)
 	return 0;
 }
 
-RothagaClient find_free_client(RothagaClient *rc)
+RothagaClient *find_free_client(RothagaClient *rc)
 {
 	int i = 0;
 	RothagaClient *c;
 
 	for(i = 0; i < MAX_CLIS; i++)
 	{
-		c = rc[i];
+		c = &rc[i];
 		if (c->s > 0) return c;
 	}
 

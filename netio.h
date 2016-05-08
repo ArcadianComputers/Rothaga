@@ -21,7 +21,7 @@
 #include <netdb.h>      /* gethostbyaddr() */
 #include <fcntl.h> /* fcntl() */
 
-typedef struct client
+typedef struct
 {
         int s;                                  /* communication socket */
         char *b;                                /* communication buffer */
@@ -29,7 +29,7 @@ typedef struct client
 
 } RothagaClient;
 
-typedef struct server
+typedef struct
 {
         int sp;                                 /* server port */
         struct sockaddr_in sin;                 /* socket structure */
