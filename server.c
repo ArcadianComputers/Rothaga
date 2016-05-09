@@ -141,8 +141,8 @@ int main(int argc, char **argv)
 				c->b[c->nc] = x[0];
 				c->nc++;
 
-				if (x[0] >= 32) printf("Got a byte [%i]: \"%s\"\t[%i]\n",c->c,x,x[0]);
-				else if (x[0] < 32 || x[0] > 126) printf("Got a byte [n:%i]: \"\"\t[%i]\n",c->c,x[0]);
+				/* if (x[0] >= 32) printf("Got a byte [%i]: \"%s\"\t[%i]\n",c->c,x,x[0]);
+				else if (x[0] < 32 || x[0] > 126) printf("Got a byte [n:%i]: \"\"\t[%i]\n",c->c,x[0]); */
 
 				if ((x[0] == 10) && (c->b[c->nc-2] == 13)) 
 				{
