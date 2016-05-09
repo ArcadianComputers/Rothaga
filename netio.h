@@ -23,6 +23,7 @@
 
 typedef struct
 {
+	int c;					/* client number */
         int s;                                  /* communication socket */
         char *b;                                /* communication buffer */
         int nc;                                 /* index position in com buffer */
