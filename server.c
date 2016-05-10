@@ -14,7 +14,8 @@ int main(int argc, char **argv)
 	int i = 0;				/* loop counter */
 	int re = 0;				/* return holder */
 	int ra = 1;				/* reuse address */
-	int rx = 0;				/* how many characters did we read */
+	int rx = -2;				/* how many characters did we read */
+	int ta = 0;				/* temporary accept */
 	char x[1];				/* read a character from any socket */
 
 	RothagaServer *s;			/* pointer to current server */
@@ -27,15 +28,16 @@ int main(int argc, char **argv)
 	for (i = 0; i < MAX_CLIS; i++) 		/* clear out client and server arrays */
 	{
 		memset(&rc[i],0,sizeof(rc));
-
-		rc[i].s = -1;			/* mark this client slot as free */
-
 		memset(&rs[i],0,sizeof(rs));
 	}
 
 	for (i = 0; i < MAX_CLIS; i++) 		/* clear out client and server arrays */
 	{
 		c = &rc[i];
+
+		c->c = i;			/* set the client id */
+
+		c->s = -2;			/* mark this client slot as free */
 
 		c->b = malloc(CLI_BUFR);
 
@@ -46,7 +48,7 @@ int main(int argc, char **argv)
 		}
 	}	
 
-	s = &rs[0];				/* pointer to current server */
+	s = &rs[0];				/* pointer to our server */
 
 	s->sp = socket(AF_INET,SOCK_STREAM,0);
 
@@ -95,21 +97,11 @@ int main(int argc, char **argv)
 
 	while(1)
 	{
-		usleep(1);			/* f off, I know it's bad */
+		usleep(1);			/* busy waiting */
 
-		c = find_free_client(rc);	/* allocate a free client slot */
-
-		if (c == NULL)
-		{
-			printf("No free client slots!\n");
-		}
-
-		else
-		{
-			c->s = accept(s->sp,NULL,NULL);
-		}
-
-		if (c->s == -1)
+		ta = accept(s->sp,NULL,NULL);
+		
+		if (ta == -1)
 		{
 			if (errno != EAGAIN)
 			{
@@ -117,18 +109,45 @@ int main(int argc, char **argv)
 			}
 		}
 
-		else if (c->s > -1)
+		else if (ta != -1)
 		{
-			fcntl(c->s,F_SETFL,O_NONBLOCK); /* non-block i/o */
+			c = find_free_client(&rc[0]);	/* allocate a free client slot */
+
+			if (c == NULL)
+			{
+				printf("No free client slots!\n");
+				write(ta,"No free client slots!\r\n",23);
+				close(ta);
+				goto readarrs;
+			}
+
+			c->s = ta;			/* assign socket to client */
+
+			re = fcntl(c->s,F_SETFL,O_NONBLOCK); /* non-block i/o */
+
+			if (re == -1)
+			{
+				perror("fcntl():");
+				exit(-1);
+			}
 
 			printf("Client %i has socket #%i\n",c->c,c->s);
 		}
+
+		readarrs:
 
 		for (i = 0; i < MAX_CLIS; i++)
 		{
 			c = &rc[i];
 
 			if (c->s > 0) rx = read(c->s,x,1);
+
+			if (rx == 0)
+			{
+				printf("Client %i disconnected!\n",c->c);
+				kill_client(c);
+				rx = -2;
+			}
 		
 			if ((c->s > 0) && (rx == 1))
 			{
@@ -172,8 +191,8 @@ RothagaClient *find_free_client(RothagaClient *rc)
 	for(i = 0; i < MAX_CLIS; i++)
 	{
 		c = &rc[i];
-		/* printf("Client %i has socket #%i\n",i,c->s); */
-		if (c->s == -1) return c;
+		printf("Client %i has socket #%i\n",i,c->s);
+		if (c->s == -2) return c;
 	}
 
 	return NULL;
@@ -181,15 +200,13 @@ RothagaClient *find_free_client(RothagaClient *rc)
 
 int kill_client(RothagaClient *c)
 {
-	printf("\n\nKilling client %i!\n",c->s);
+	printf("Killing client %i, socket #%i!\n",c->c,c->s);
 
-	close(c->s);
+	close(c->s);			/* close the socket */
 
-	free(c->b);
+	memset(c->b,0,CLI_BUFR);	/* clear the com buffer */
 
-	memset(c,0,sizeof(RothagaClient));
-
-	c->s = -1;  /* make sure we set it as free */
+	c->s = -2;  			/* make sure we set it as free */
 
 	return 0;
 }
