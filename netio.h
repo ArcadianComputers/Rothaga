@@ -19,7 +19,7 @@
 #include <netinet/in.h> /* htons() */
 #include <arpa/inet.h>  /* inet_addr() */
 #include <netdb.h>      /* gethostbyaddr() */
-#include <fcntl.h> /* fcntl() */
+#include <fcntl.h>	/* fcntl() */
 
 typedef struct
 {
@@ -38,7 +38,8 @@ typedef struct
 } RothagaServer;
 
 RothagaClient *find_free_client(RothagaClient *);
-int parse_client_command(RothagaClient *);
+int parse_client_message(RothagaClient *, RothagaClient *);
+int parse_client_command(RothagaClient *, RothagaClient *);
 int kill_client(RothagaClient *);
 
 #endif /* NETIO_H_ */

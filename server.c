@@ -6,8 +6,8 @@
 
 #define SRV_PORT 7117				/* TCP port we listen on */
 #define CLI_BUFR 1024				/* size of client buffer */
-#define MAX_CLIS 2				/* maximum number of clients */
-#define MAX_SRVS 16				/* maximum number of servers */
+#define MAX_CLIS 256				/* maximum number of clients */
+#define MAX_SRVS 1				/* maximum number of servers */
 
 int main(int argc, char **argv)
 {
@@ -27,9 +27,11 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < MAX_CLIS; i++) 		/* clear out client and server arrays */
 	{
-		memset(&rc[i],0,sizeof(rc));
-		memset(&rs[i],0,sizeof(rs));
+		/* printf("MAX_CLIS = %i, i = %i\n",MAX_CLIS,i); */
+		memset(&rc[i],0,sizeof(rc[i]));
 	}
+
+	memset(&rs[0],0,sizeof(rs));
 
 	for (i = 0; i < MAX_CLIS; i++) 		/* clear out client and server arrays */
 	{
@@ -153,6 +155,7 @@ int main(int argc, char **argv)
 			{
 				if (c->nc > CLI_BUFR)		/* buffer overflow attempt -Jon */
 				{
+					printf("Possible Buffer Overflow attempt! Killing client %i on socket #%i\n",c->c,c->s);
 					kill_client(c);
 					continue;
 				}
@@ -165,20 +168,74 @@ int main(int argc, char **argv)
 
 				if ((x[0] == 10) && (c->b[c->nc-2] == 13)) 
 				{
-					parse_client_command(c);
+					parse_client_command(rc,c);
 				}
 			}
 		}
 	}
 }
 
-int parse_client_command(RothagaClient *c)
+int parse_client_command(RothagaClient *rc, RothagaClient *c)
 {
+	int l = 0;
+	char cmd[3];
+
+	cmd[0] = 0;
+	cmd[1] = 0;
+	cmd[2] = 0;
+
+	l = strlen(c->b);
+
+	if (l < 4)
+	{
+		printf("Malformed command from client %i on socket #%i\n",c->c,c->s);
+		write(c->s,"Malformed command: ",19);
+		write(c->s,c->b,l);
+		write(c->s,"\r\n",2);
+		goto pcend;
+	}
+
+	cmd[0] = c->b[0];
+	cmd[1] = c->b[1];
+
+	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
+
 	printf("Client %i said: %s\n",c->c,c->b);
+
+	pcend:
 
 	memset(c->b,0,CLI_BUFR);
 
 	c->nc = 0;
+
+	return 0;
+}
+
+int parse_client_message(RothagaClient *rc, RothagaClient *c)
+{
+	int i = 0;
+	int l = 0;
+	char *cm = NULL;
+
+	l = strlen(c->b);
+	l -= 2;
+	c->b += 2;
+
+	cm = malloc(l+256);
+
+	memset(cm,0,l+256);
+
+	snprintf(cm,l+256,"Client %i says: %s\n",c->c,c->b); 
+
+	l = strlen(cm);
+	
+	for (i = 0; i < MAX_CLIS; i++)
+	{
+		if (rc[i].s > 0)
+		{
+			write(rc[i].s,cm,l);
+		}  	
+	}
 
 	return 0;
 }
@@ -191,7 +248,7 @@ RothagaClient *find_free_client(RothagaClient *rc)
 	for(i = 0; i < MAX_CLIS; i++)
 	{
 		c = &rc[i];
-		printf("Client %i has socket #%i\n",i,c->s);
+		/* printf("Client %i has socket #%i\n",i,c->s); */
 		if (c->s == -2) return c;
 	}
 
