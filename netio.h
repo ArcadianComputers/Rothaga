@@ -27,6 +27,7 @@ typedef struct
         int s;                                  /* communication socket */
         char *b;                                /* communication buffer */
         int nc;                                 /* index position in com buffer */
+	char *cliname;				/* Temporary name for Client */
 
 } RothagaClient;
 

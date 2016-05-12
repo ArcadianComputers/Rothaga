@@ -12,6 +12,6 @@
 #include <unistd.h>
 
 char *encrp(char *);
-char *cliname;
+
 
 #endif /* ENCIO_H_ */
