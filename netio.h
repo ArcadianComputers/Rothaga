@@ -21,6 +21,8 @@
 #include <netdb.h>      /* gethostbyaddr() */
 #include <fcntl.h>	/* fcntl() */
 
+#define NAME_LEN 256
+
 typedef struct
 {
 	int c;					/* client number */
@@ -39,6 +41,7 @@ typedef struct
 } RothagaServer;
 
 RothagaClient *find_free_client(RothagaClient *);
+int set_client_name(RothagaClient *, RothagaClient *);
 int parse_client_message(RothagaClient *, RothagaClient *);
 int parse_client_command(RothagaClient *, RothagaClient *);
 int kill_client(RothagaClient *);

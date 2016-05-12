@@ -198,7 +198,8 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	cmd[1] = c->b[1];
 
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
-
+	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
+	
 	printf("Client %i said: %s\n",c->c,c->b);
 
 	pcend:
@@ -208,6 +209,77 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	c->nc = 0;
 
 	return 0;
+}
+
+int set_client_name(RothagaClient *rc, RothagaClient *c)
+{
+	int i = 0;		/*Incrementation Counter*/
+	int l = 0;		/*Length Counter*/
+	char *cm = NULL;
+	char *tmp = NULL;
+
+	c->b += 2;		/* increment depth into c->b */
+	l = strlen(c->b);	/* take length of client name */
+
+	tmp = malloc(NAME_LEN);
+	
+	if (tmp == NULL)
+	{
+		perror("malloc(): ");
+
+		if(c->cliname == NULL)
+		{
+			printf("Out of RAM! Killing client %i\n", c->c);
+			write(c->s, "Out of RAM, closing connection.", 31);
+			kill_client(c);
+
+			return -1;
+		}
+
+		else 
+		{
+			printf("Out of RAM! Cannot change name for Client %i\n",c->c);
+			write(c->s, "0M Cannot process request.",26);
+
+			return -1;
+		}
+	}
+
+	else 
+	{
+		strncpy(tmp, c->b, NAME_LEN-1);		
+	}
+
+	cm = malloc(l+256);
+	memset(cm,0,l+256);
+
+	if (c->cliname == NULL)
+	{
+		snprintf(cm,l+256,"Client %i changed name to: %s\n",c->c,c->cliname);
+		strncpy(c->cliname,tmp, NAME_LEN-1);
+	}
+
+	else
+	{
+		snprintf(cm,l+256,"Client %s changed name to: %s\n",c->cliname,tmp);
+		memset(c->cliname,0,strlen(c->cliname));
+		strncpy(c->cliname,tmp, NAME_LEN-1);		
+	}
+
+	l = strlen(cm);
+	
+	for (i = 0; i < MAX_CLIS; i++)
+	{
+		if (rc[i].s > 0)
+		{
+			write(rc[i].s,cm,l);
+		}  	
+	}
+
+	free(cm);
+	free(tmp);
+
+	return 0;	
 }
 
 int parse_client_message(RothagaClient *rc, RothagaClient *c)

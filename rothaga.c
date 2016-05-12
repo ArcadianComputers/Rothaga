@@ -9,7 +9,7 @@
 #include "netio.h"
 #include "encio.h"
 
-#define NAME_LEN 256
+
 #define WIN_CFG "C:\\Users\\Admin\\workspace\\Rothaga\\Rothaga.ini"
 #define LNX_CFG "./rothaga.ini"
 
