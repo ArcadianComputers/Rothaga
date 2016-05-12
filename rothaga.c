@@ -9,6 +9,7 @@
 #include "netio.h"
 #include "encio.h"
 
+#define NAME_LEN 256
 #define WIN_CFG "C:\\Users\\Admin\\workspace\\Rothaga\\Rothaga.ini"
 #define LNX_CFG "./rothaga.ini"
 
@@ -16,15 +17,30 @@
 
 int main (int argc, char **argv)
 {
+	RothagaClient rc;					/*Local Client Structure*/
 	printf("Welcome to %s version 0.2 alpha\n",argv[0]);
 
 	/* load_config(CONFIG_FILE) */
 	/* find_clients() */
 	/* show interface() */
+	
+	rc.cliname = malloc(NAME_LEN);
+		
+	if (rc.cliname == NULL)
+	{
+		perror("malloc(): ");
+		printf("Out of RAM\n");
+		exit(-1);
+	}
+	
+	memset(rc.cliname, 0, NAME_LEN);
+	snprintf(rc.cliname, NAME_LEN-1, argv[1]);
 
+	printf("Client chose name: %s\n", rc.cliname);
+		
 	load_config(LNX_CFG);
 
-	printf("plaintext = %s, enctext = %s\n",argv[1],encrp(argv[1]));
+	printf("plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2]));
 
 	return 0;
 }
