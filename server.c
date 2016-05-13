@@ -255,7 +255,9 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 	if (c->cliname == NULL)
 	{
-		snprintf(cm,l+256,"Client %i changed name to: %s\n",c->c,c->cliname);
+		snprintf(cm,l+256,"Client %i changed name to: %s\n",c->c,c->tmp);
+		c->cliname = malloc(NAME_LEN);
+		memset(c->cliname,0,NAME_LEN);
 		strncpy(c->cliname,tmp, NAME_LEN-1);
 	}
 
