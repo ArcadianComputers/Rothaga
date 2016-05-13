@@ -259,14 +259,14 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		snprintf(cm,l+256,"Client %i changed name to: %s\n",c->c,tmp);
 		c->cliname = malloc(NAME_LEN);
 		memset(c->cliname,0,NAME_LEN);
-		strncpy(c->cliname,tmp, NAME_LEN-1);
+		strncpy(c->cliname,tmp, l-2);
 	}
 
 	else
 	{
 		snprintf(cm,l+256,"Client %s changed name to: %s\n",c->cliname,tmp);
 		memset(c->cliname,0,strlen(c->cliname));
-		strncpy(c->cliname,tmp, NAME_LEN-1);		
+		strncpy(c->cliname,tmp,l-2);		
 	}
 
 	l = strlen(cm);
@@ -291,6 +291,12 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	int l = 0;
 	char *cm = NULL;
 
+	if(c->cliname == NULL)
+	{
+		write(c->s,"NNYou must assign a name with the SN command!",45);
+		return -1;
+	}
+
 	l = strlen(c->b);
 	l -= 2;
 	c->b += 2;
@@ -299,7 +305,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 
 	memset(cm,0,l+256);
 
-	snprintf(cm,l+256,"Client %i says: %s\n",c->c,c->b); 
+	snprintf(cm,l+256,"<%s> %s\n",c->cliname,c->b); 
 
 	l = strlen(cm);
 	
