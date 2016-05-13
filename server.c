@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 		c->s = -2;			/* mark this client slot as free */
 
 		c->b = malloc(CLI_BUFR);
+		memset(c->b,0,CLI_BUFR);
 
 		if (c->b == NULL)
 		{
