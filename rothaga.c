@@ -58,21 +58,23 @@ int main (int argc, char **argv)
 		return -1;
 	}
 
-	l = strlen(rc.cliname)+strlen(argv[2])+4;
+	l = strlen(rc.cliname)+strlen(argv[2])+5;
 
 	rc.b = malloc(l);
 
 	memset(rc.b,0,l);
 
-	snprintf(rc.b,strlen(rc.cliname)+4,"SN%s\r\n",rc.cliname);
+	snprintf(rc.b,strlen(rc.cliname)+5,"SN%s\r\n",rc.cliname);
 
 	write(rc.s,rc.b,strlen(rc.b));
 
 	memset(rc.b,0,l);
 
-	snprintf(rc.b,strlen(argv[2])+4,"SM%s\r\n",argv[2]);
+	snprintf(rc.b,strlen(argv[2])+5,"SM%s\r\n",argv[2]);
 
 	write(rc.s,rc.b,strlen(rc.b));
+
+	/* sleep(1); */
 
 	close(rc.s);
 
