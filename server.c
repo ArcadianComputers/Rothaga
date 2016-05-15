@@ -9,6 +9,8 @@
 #define MAX_CLIS 256				/* maximum number of clients */
 #define MAX_SRVS 1				/* maximum number of servers */
 
+RothagaClient *gpc;				/* global SIGPIPE Client pointer */
+
 int main(int argc, char **argv)
 {
 	int i = 0;				/* loop counter */
@@ -24,7 +26,7 @@ int main(int argc, char **argv)
 	RothagaClient rc[MAX_CLIS];		/* array of client structures */
 
 	signal(SIGINT, kill_server);		/* stop the server on Ctrl-C */
-	signal(SIGPIPE, SIG_IGN);		/* ignore SIGPIPE and handle it in errno */
+	signal(SIGPIPE, sig_pipe_reset);	/* capture SIGPIPE and reset the correct socket */
 
 	for (i = 0; i < MAX_CLIS; i++) 		/* clear out client and server arrays */
 	{
@@ -121,7 +123,7 @@ int main(int argc, char **argv)
 			{
 				printf("No free client slots!\n");
 				re = write(ta,"No free client slots!\r\n",23);
-				if (re == -1 && errno == EPIPE) printf("Anonymous client disconnected.\n");
+				if (re == -1 && errno == EPIPE) printf("Anonymous client broke pipe.\n");
 				close(ta);
 				goto readarrs;
 			}
@@ -135,6 +137,7 @@ int main(int argc, char **argv)
 				perror("fcntl():");
 				exit(-1);
 			}
+
 			printf("Client %i has socket #%i\n",c->c,c->s);
 		}
 
@@ -179,7 +182,6 @@ int main(int argc, char **argv)
 
 int parse_client_command(RothagaClient *rc, RothagaClient *c)
 {
-	int re = 0;
 	int l = 0;
 	char cmd[3];
 
@@ -193,26 +195,9 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	{
 		printf("Malformed command from client: %i on socket #%i\n",c->c,c->s);
 
-		re = write(c->s,"Malformed command: ",19);
-		if (re == -1 && errno == EPIPE)
-		{
-			printf("Client %i disconnected abruptly.\n",c->c);
-			kill_client(c);
-		}
-
-		re = write(c->s,c->b,l);
-		if (re == -1 && errno == EPIPE)
-		{
-			printf("Client %i disconnected abruptly.\n",c->c);
-			kill_client(c);
-		}
-
-		re = write(c->s,"\r\n",2);
-		if (re == -1 && errno == EPIPE)
-		{
-			printf("Client %i disconnected abruptly.\n",c->c);
-			kill_client(c);
-		}
+		write_client(c,"Malformed command: ");
+		write_client(c,c->b);
+		write_client(c,"\r\n");
 
 		goto pcend;
 	}
@@ -220,10 +205,10 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	cmd[0] = c->b[0];
 	cmd[1] = c->b[1];
 
+	printf("Client %i said: %s\n",c->c,c->b);
+
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
-	
-	printf("Client %i said: %s\n",c->c,c->b);
 
 	pcend:
 
@@ -236,7 +221,6 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 int set_client_name(RothagaClient *rc, RothagaClient *c)
 {
-	int re = 0;		/* return value */
 	int i = 0;		/* incrementation counter */
 	int l = 0;		/* length counter */
 	char *cm = NULL;
@@ -254,47 +238,44 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		if(c->cliname == NULL)
 		{
 			printf("Out of RAM! Killing client %i\n", c->c);
-			re = write(c->s, "Out of RAM, closing connection.", 31);
-			if (re == -1 && errno == EPIPE) printf("Client %i disconnected abrutply.\n",c->c);
+			write_client(c,"0MOut of RAM, closing connection.\n");
 			kill_client(c);
-
 			return -1;
 		}
 
 		else 
 		{
 			printf("Out of RAM! Cannot change name for Client %i\n",c->c);
-
-			re = write(c->s, "0M Cannot process request.",26);
-			if (re == -1 && errno == EPIPE) 
-			{
-				printf("Client %i disconnected abruptly.\n",c->c);
-				kill_client(c);
-			}
-
+			write_client(c,"0MCannot process request.\n");
 			return -1;
 		}
 	}
 
 	else 
 	{
+		if (l > (NAME_LEN-2))	/* name too long */
+		{
+			write_client(c,"9NName too long.\n");
+			return -1;
+		}
+
 		strncpy(tmp, c->b, NAME_LEN-1);		
 	}
 
-	cm = malloc(l+256);
-	memset(cm,0,l+256);
+	cm = malloc(l+NAME_LEN);
+	memset(cm,0,l+NAME_LEN);
 
 	if (c->cliname == NULL)
 	{
-		snprintf(cm,l+256,"Client %i changed name to: %s\n",c->c,tmp);
+		snprintf(cm,l+NAME_LEN,"<%i> is now %s\n",c->c,tmp);
 		c->cliname = malloc(NAME_LEN);
 		memset(c->cliname,0,NAME_LEN);
-		strncpy(c->cliname,tmp, l-2);
+		strncpy(c->cliname,tmp,l-2);
 	}
 
 	else
 	{
-		snprintf(cm,l+256,"Client %s changed name to: %s\n",c->cliname,tmp);
+		snprintf(cm,l+256,"<%s> is now %s\n",c->cliname,tmp);
 		memset(c->cliname,0,strlen(c->cliname));
 		strncpy(c->cliname,tmp,l-2);		
 	}
@@ -305,12 +286,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	{
 		if (rc[i].s > 0)
 		{
-			re = write(rc[i].s,cm,l);
-			if (re == -1 && errno == EPIPE)
-			{
-				printf("Client %i disconnected abruptly.\n",c->c);
-				kill_client(c);
-			}
+			write_client(&rc[i],cm);
 		}  	
 	}
 
@@ -322,19 +298,13 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 int parse_client_message(RothagaClient *rc, RothagaClient *c)
 {
-	int re = 0;
 	int i = 0;
 	int l = 0;
 	char *cm = NULL;
 
 	if(c->cliname == NULL)
 	{
-		re = write(c->s,"NNYou must assign a name with the SN command!",45);
-		if (re == -1 && errno == EPIPE)
-		{
-			printf("Client %i disconnected abruptly.\n",c->c);
-			kill_client(c);
-		}
+		write_client(c,"0NYou must assign a name with SN<name>.\n");
 
 		return -1;
 	}
@@ -355,12 +325,8 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	{
 		if (rc[i].s > 0)
 		{
-			re = write(rc[i].s,cm,l);
-			if (re == -1 && errno == EPIPE)
-			{
-				printf("Client %i disconnected abruptly.\n",c->c);
-				kill_client(c);
-			}
+			printf("%s\n",cm);
+			write_client(&rc[i],cm);
 		}  	
 	}
 
@@ -390,7 +356,32 @@ int kill_client(RothagaClient *c)
 
 	memset(c->b,0,CLI_BUFR);	/* clear the com buffer */
 
+	if (c->cliname != NULL)		/* remove client name */
+	{
+		memset(c->cliname,0,NAME_LEN);
+		free(c->cliname);
+	}
+
 	c->s = -2;  			/* make sure we set it as free */
+
+	return 0;
+}
+
+int write_client(RothagaClient *c, char *str)
+{
+	int re = 0;			/* return value */
+	int l = strlen(str);		/* length of data to write */
+
+	gpc = c;			/* associate c with gpc for SIGPIPE handling */
+	re = write(c->s,str,l);
+
+	if (re == -1)
+	{
+		if (errno == EPIPE)
+		{
+			printf("Caught EPIPE from failed write to client %i!\n",c->c);
+		}
+	}
 
 	return 0;
 }
@@ -399,4 +390,11 @@ void kill_server(int sig)
 {
 	printf("\n\nCaught Ctrl-C (%i), shutting down!\n\n",sig); 
 	exit(sig);
+}
+
+void sig_pipe_reset(int sig)
+{
+	printf("\n\nCaught SIGPIPE (%i) from Client %i!\n\n",sig,gpc->c);
+	kill_client(gpc);
+	return;
 }
