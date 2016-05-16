@@ -4,11 +4,6 @@
 #include "fileio.h"
 #include "encio.h"
 
-#define SRV_PORT 7117				/* TCP port we listen on */
-#define CLI_BUFR 1024				/* size of client buffer */
-#define MAX_CLIS 256				/* maximum number of clients */
-#define MAX_SRVS 1				/* maximum number of servers */
-
 RothagaClient *gpc;				/* global SIGPIPE Client pointer */
 
 int main(int argc, char **argv)
@@ -103,8 +98,6 @@ int main(int argc, char **argv)
 
 	while(1)
 	{
-		usleep(1);			/* busy waiting */
-
 		ta = accept(s->sp,NULL,NULL);
 		
 		if (ta == -1)
@@ -225,9 +218,11 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	int l = 0;		/* length counter */
 	char *cm = NULL;
 	char *tmp = NULL;
+	char *cptr = NULL;
 
-	c->b += 2;		/* increment depth into c->b */
-	l = strlen(c->b);	/* take length of client name */
+	cptr = c->b;
+	cptr += 2;		/* increment depth into c->b */
+	l = strlen(cptr);	/* take length of client name */
 
 	tmp = malloc(NAME_LEN);
 	
@@ -259,7 +254,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 			return -1;
 		}
 
-		strncpy(tmp, c->b, NAME_LEN-1);		
+		strncpy(tmp, cptr, NAME_LEN-1);		
 	}
 
 	cm = malloc(l+NAME_LEN);
@@ -301,6 +296,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	int i = 0;
 	int l = 0;
 	char *cm = NULL;
+	char *cptr = NULL;
 
 	if(c->cliname == NULL)
 	{
@@ -311,13 +307,14 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 
 	l = strlen(c->b);
 	l -= 2;
-	c->b += 2;
+	cptr = c->b;
+	cptr += 2;
 
 	cm = malloc(l+256);
 
 	memset(cm,0,l+256);
 
-	snprintf(cm,l+256,"<%s> %s\n",c->cliname,c->b); 
+	snprintf(cm,l+256,"<%s> %s\n",c->cliname,cptr); 
 
 	l = strlen(cm);
 	
