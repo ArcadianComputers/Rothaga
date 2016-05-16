@@ -1,1 +1,5 @@
 SLDOME~I
+*.stackdump
+server.exe
+rothaga.exe
+*.exe
