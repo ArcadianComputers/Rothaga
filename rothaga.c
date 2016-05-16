@@ -172,6 +172,8 @@ int parse_console_command(RothagaClient *c)
 
 	l = strlen(c->k);
 
+	memset(tmp,0,CLI_BUFR);
+
 	strncpy(tmp,c->k,l-1);		/* skip the trailing new line */
 
 	if (strncmp(tmp,"/quit",5) == 0)
@@ -183,6 +185,23 @@ int parse_console_command(RothagaClient *c)
 	else if (strncmp(tmp,"/sn",3) == 0)
 	{
 		set_name(c,tmp+4);
+	}
+	
+	else if (strncmp(tmp,"/rp",3 == 0)
+	{
+		
+		printf("If you are sure you want to report <%s>, please type /yes, if not please /no",\n\n",reported);
+		if (strcmp(tmp,"/yes",4 == 0)
+		{
+			printf("/n/n");
+			report_user(c,tmp+4);
+		}
+		
+		else if (strcmp(tmp,"/no",3 == 0)
+		{
+			printf("Thanks for wasting everyone's time/n/n");
+			continue;
+		}
 	}
 
 	else
@@ -220,6 +239,21 @@ int set_name(RothagaClient *c, char *cliname)
 	free(tmp);
 
 	return 0;
+}
+
+int report_user(RothagaClient *c, char *reported)
+{
+	char *tmp = NULL;
+
+	tmp = malloc(CLI_BUFR);
+
+	if (tmp == NULL)
+		{
+			perror("malloc(): ");
+			exit(-1);
+		}
+	
+	snprintf("tmp,CLI_BUFR-1,"RP
 }
 
 int send_message(RothagaClient *c, char *msg)
