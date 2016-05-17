@@ -8,6 +8,7 @@
 #include "fileio.h"
 #include "netio.h"
 #include "encio.h"
+#include "agathor.h"
 /* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
 
 #define WIN_CFG "C:\\Users\\Admin\\workspace\\Rothaga\\Rothaga.ini"
@@ -22,11 +23,20 @@ int main (int argc, char **argv)
 	struct sockaddr_in sin;					/* network structure */
 	RothagaClient rc;					/* local client structure */
 
+	printf("%s\n",agathor);
+
 	printf("Welcome to %s version 0.4 alpha\n",argv[0]);
 
 	/* load_config(CONFIG_FILE) */
 	/* find_clients() */
 	/* show interface() */
+
+
+	if (argc < 4)
+	{
+		printf("\nUsage: %s <name> <server> <port>\n",argv[0]);
+		return -1;
+	}
 
 	memset(&rc,0,sizeof(rc));				/* clear out the client structure */
 	
