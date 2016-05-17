@@ -186,21 +186,25 @@ int parse_console_command(RothagaClient *c)
 	{
 		set_name(c,tmp+4);
 	}
-	
-	else if (strncmp(tmp,"/rp",3 == 0)
+
+	else if (strncmp(tmp, "/ping",5) == 0)
+	{
+		ping_server(c);
+	}
+
+	else if (strncmp(tmp,"/rp",3) == 0)
 	{
 		
-		printf("If you are sure you want to report <%s>, please type /yes, if not please /no",\n\n",reported);
-		if (strcmp(tmp,"/yes",4 == 0)
+		printf("If you are sure you want to report <%s>, please type /yes, if not please /no\n\n","NULL");
+		if (strncmp(tmp,"/yes",4) == 0)
 		{
-			printf("/n/n");
-			report_user(c,tmp+4);
+			printf("\n\n");
+			/*report_user(c,tmp+4);*/
 		}
 		
-		else if (strcmp(tmp,"/no",3 == 0)
+		else if (strncmp(tmp,"/no",3) == 0)
 		{
-			printf("Thanks for wasting everyone's time/n/n");
-			continue;
+			printf("Thanks for wasting everyone's time\n\n");
 		}
 	}
 
@@ -214,6 +218,12 @@ int parse_console_command(RothagaClient *c)
 	free(tmp);
 
 	return 0;
+}
+
+int ping_server(RothagaClient *c)
+{
+	write_to_server(c,"PN\r\n");
+	return 0;	
 }
 
 int set_name(RothagaClient *c, char *cliname)
@@ -253,7 +263,8 @@ int report_user(RothagaClient *c, char *reported)
 			exit(-1);
 		}
 	
-	snprintf("tmp,CLI_BUFR-1,"RP
+	snprintf(tmp,CLI_BUFR-1,reported);
+	return 0;
 }
 
 int send_message(RothagaClient *c, char *msg)

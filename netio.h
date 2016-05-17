@@ -58,5 +58,6 @@ int set_name(RothagaClient *, char *);				/* set our name on the network */
 int write_to_server(RothagaClient *, char *);			/* write a command out to the server */
 int send_message(RothagaClient *, char *);			/* send a global message */
 void sig_pipe_reset(int);					/* reset a client slot that was determined to be dead on write */
+int ping_server(RothagaClient *);				/* find the ping between your computer and the server*/
 
 #endif /* NETIO_H_ */
