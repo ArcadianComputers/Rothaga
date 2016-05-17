@@ -193,19 +193,31 @@ int parse_console_command(RothagaClient *c)
 	}
 
 	else if (strncmp(tmp,"/rp",3) == 0)
+	{	
+		tmp+=4;
+		
+		printf("If you are sure you want to report <%s>, please type /yes, if not please /no\n\n",tmp);
+		
+		c->argyon = malloc(NAME_LEN);
+		if(c->argyon == NULL)
+		{
+			perror("malloc()");
+			printf("Lacking required RAM\n");
+			return -1;
+		}
+		snprintf(c->argyon,NAME_LEN-1,"%s",tmp);
+		
+		c->f = (void *)report_user;
+	}
+
+	else if (strncmp(tmp,"/yes",4) == 0)
 	{
-		
-		printf("If you are sure you want to report <%s>, please type /yes, if not please /no\n\n","NULL");
-		if (strncmp(tmp,"/yes",4) == 0)
-		{
-			printf("\n\n");
-			/*report_user(c,tmp+4);*/
-		}
-		
-		else if (strncmp(tmp,"/no",3) == 0)
-		{
-			printf("Thanks for wasting everyone's time\n\n");
-		}
+		c->f(c,c->argyon);
+	}
+	
+	else if (strncmp(tmp,"/no",3) == 0)
+	{
+		printf("Guess not then...\n\n");
 	}
 
 	else
@@ -251,19 +263,24 @@ int set_name(RothagaClient *c, char *cliname)
 	return 0;
 }
 
-int report_user(RothagaClient *c, char *reported)
+int report_user(RothagaClient *c, char *argyon)
 {
 	char *tmp = NULL;
 
 	tmp = malloc(CLI_BUFR);
 
 	if (tmp == NULL)
-		{
-			perror("malloc(): ");
-			exit(-1);
-		}
+	{
+		perror("malloc(): ");
+		exit(-1);
+	}
 	
-	snprintf(tmp,CLI_BUFR-1,reported);
+	snprintf(tmp,CLI_BUFR-1,"RP%s\r\n",argyon);
+
+	write_to_server(c,tmp);
+
+	free(tmp);
+
 	return 0;
 }
 

@@ -27,6 +27,8 @@
 #define MAX_CLIS 256				/* maximum number of clients */
 #define MAX_SRVS 1				/* maximum number of servers */
 
+typedef void (*ftc)(void *, char *);			/* void function pointer */ /* Jon hates this one */
+
 typedef struct
 {
 	int c;							/* client number */
@@ -36,6 +38,8 @@ typedef struct
         int nc;                                 		/* index position in com buffer */
 	int nk;							/* index position in kbd buffer */
 	char *cliname;						/* Temporary name for Client */
+	char *argyon;						/* Lists the reported user's name */
+	ftc f;							/* anon function pointer */
 
 } RothagaClient;
 
@@ -46,6 +50,7 @@ typedef struct
 
 } RothagaServer;
 
+
 RothagaClient *find_free_client(RothagaClient *);		/* find and return an open client slot */
 int set_client_name(RothagaClient *, RothagaClient *);		/* parse SN command to set the client's name */
 int parse_client_message(RothagaClient *, RothagaClient *);	/* parse SM command to send a global message */
@@ -55,6 +60,7 @@ int write_client(RothagaClient *, char *);			/* write data to a client */
 int parse_console_command(RothagaClient *);			/* parse a command from the console */
 int parse_server_message(RothagaClient *);			/* parse a message from the server */
 int set_name(RothagaClient *, char *);				/* set our name on the network */
+int report_user(RothagaClient *,char *);			/* allows you to report a user */
 int write_to_server(RothagaClient *, char *);			/* write a command out to the server */
 int send_message(RothagaClient *, char *);			/* send a global message */
 void sig_pipe_reset(int);					/* reset a client slot that was determined to be dead on write */
