@@ -244,6 +244,10 @@ int parse_console_command(RothagaClient *c)
 
 int ping_server(RothagaClient *c)
 {
+	c->ts = times(c->tb);
+	clock_gettime(CLOCK_REALTIME, &c->spec);
+	c->ms = round(c->spec.tv_nsec / 1.0e6);
+	printf("Sending ping (%li) 0.03%ld.03%ld\n",c->ts, c->ms, c->spec.tv_nsec);
 	write_to_server(c,"PN\r\n");
 	return 0;	
 }

@@ -16,10 +16,14 @@
 #include <time.h>
 #include <sys/types.h>   /* socket(), bind() */
 #include <sys/socket.h>  /* listen(), accept() */
+#include <sys/times.h>	 /*times()*/
 #include <netinet/in.h> /* htons() */
 #include <arpa/inet.h>  /* inet_addr() */
 #include <netdb.h>      /* gethostbyaddr() */
 #include <fcntl.h>	/* fcntl() */
+#include <inttypes.h>
+#include <math.h>
+
 
 #define NAME_LEN 256	/* max length of a clients name */
 #define SRV_PORT 7117				/* TCP port we listen on */
@@ -40,6 +44,11 @@ typedef struct
 	char *cliname;						/* Temporary name for Client */
 	char *argyon;						/* Lists the reported user's name */
 	ftc f;							/* anon function pointer */
+	clock_t ts;						/*Captures timestamp*/
+	struct tms *tb;						/*Time holder*/
+	long ms;						/*milliseconds*/
+	time_t wts;						/*seconds*/
+	struct timespec spec;					/*To grab time*/
 
 } RothagaClient;
 
@@ -65,5 +74,6 @@ int write_to_server(RothagaClient *, char *);			/* write a command out to the se
 int send_message(RothagaClient *, char *);			/* send a global message */
 void sig_pipe_reset(int);					/* reset a client slot that was determined to be dead on write */
 int ping_server(RothagaClient *);				/* find the ping between your computer and the server*/
+int send_pong(RothagaClient *);					/*Sends ping back*/
 
 #endif /* NETIO_H_ */
