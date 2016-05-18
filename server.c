@@ -203,6 +203,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
 	else if (strncmp(cmd,"PN",2)==0) send_pong(c);
+	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
 
 	pcend:
 
@@ -291,6 +292,72 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 	return 0;	
 }
+
+int send_report(RothagaClient *rc, RothagaClient *c)
+{
+	int i = 0;		/* incrementation counter */
+	int l = 0;		/* length counter */
+	char *cm = NULL;
+	char *tmp = NULL;
+	char *cptr = NULL;
+
+	cptr = c->b;
+	cptr += 2;		/* increment depth into c->b */
+	l = strlen(cptr);	/* take length of reported client name */
+
+	tmp = malloc(NAME_LEN);
+
+	if (tmp == NULL)
+	{
+		perror("malloc(): ");
+
+		printf("Out of RAM! Cannot report %s\n",cptr);
+		write_client(c,"0MCannot process request.\n");
+		return -1;
+		
+	}
+
+	else 
+	{
+		if (l > (NAME_LEN-2))	/* name too long */
+		{
+			write_client(c,"9NName too long.\n");
+			return -1;
+		}
+
+		memset(tmp,0,NAME_LEN);
+
+		strncpy(tmp, cptr, l-2);		
+	}
+	
+	cm = malloc(CLI_BUFR);
+	
+	if (cm == NULL)
+	{
+		perror("malloc(): ");
+
+		printf("Out of RAM! Cannot send report to users\n");
+		write_client(c,"0MCannot process request.\n");
+		return -1;
+	}
+
+	memset(cm,0,CLI_BUFR);
+
+	snprintf(cm,CLI_BUFR-1,"RP%s\r\n",tmp);
+
+	for (i = 0; i < MAX_CLIS; i++)
+	{
+		if (rc[i].s > 0)
+		{
+			write_client(&rc[i],cm);
+		}  	
+	}
+	
+	return 0;
+
+}
+
+
 
 int parse_client_message(RothagaClient *rc, RothagaClient *c)
 {

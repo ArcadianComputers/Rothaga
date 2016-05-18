@@ -25,7 +25,7 @@
 #include <math.h>
 
 
-#define NAME_LEN 256	/* max length of a clients name */
+#define NAME_LEN 256				/* max length of a clients name */
 #define SRV_PORT 7117				/* TCP port we listen on */
 #define CLI_BUFR 1024				/* size of client buffer */
 #define MAX_CLIS 256				/* maximum number of clients */
@@ -49,6 +49,8 @@ typedef struct
 	long ms;						/*milliseconds*/
 	time_t wts;						/*seconds*/
 	struct timespec spec;					/*To grab time*/
+	int tr;							/* number of times reported */
+	int karma;						/* karma (duh) */
 
 } RothagaClient;
 
@@ -74,6 +76,7 @@ int write_to_server(RothagaClient *, char *);			/* write a command out to the se
 int send_message(RothagaClient *, char *);			/* send a global message */
 void sig_pipe_reset(int);					/* reset a client slot that was determined to be dead on write */
 int ping_server(RothagaClient *);				/* find the ping between your computer and the server*/
-int send_pong(RothagaClient *);					/*Sends ping back*/
+int send_pong(RothagaClient *);					/* Sends ping back */
+int send_report(RothagaClient *, RothagaClient *);		/* sends name of reported client to every user on the server */
 
 #endif /* NETIO_H_ */
