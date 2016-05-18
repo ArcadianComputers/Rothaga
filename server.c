@@ -202,6 +202,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
+	else if (strncmp(cmd,"PN",2)==0) send_pong(c);
 
 	pcend:
 
@@ -300,7 +301,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 
 	if(c->cliname == NULL)
 	{
-		write_client(c,"0NYou must assign a name with SN<name>.\n");
+		write_client(c,"0NYou must assign a name with SN<name>.\r\n");
 
 		return -1;
 	}
@@ -330,6 +331,12 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	return 0;
 }
 
+int send_pong(RothagaClient *c)
+{
+	write_client(c, "PG\r\n");
+
+	return 0;
+}
 RothagaClient *find_free_client(RothagaClient *rc)
 {
 	int i = 0;
