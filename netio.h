@@ -78,5 +78,11 @@ void sig_pipe_reset(int);					/* reset a client slot that was determined to be d
 int ping_server(RothagaClient *);				/* find the ping between your computer and the server*/
 int send_pong(RothagaClient *);					/* Sends ping back */
 int send_report(RothagaClient *, RothagaClient *);		/* sends name of reported client to every user on the server */
+int confirm_report(RothagaClient *,char *);			/* confirms the reporting with all users */
+/* int karma_check(RothagaClient *); */				/* Checks karma levels for each use */
+
+
+
+
 
 #endif /* NETIO_H_ */

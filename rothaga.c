@@ -351,13 +351,28 @@ int parse_server_message(RothagaClient *c)
 
 	l = strlen(c->b);
 
+	memset(tmp,0,CLI_BUFRP);
+
 	strncpy(tmp,c->b,l-2);	/* skip the /r/n combo */
 
 	printf("*** %s\n",tmp);
 
+	if (strncmp(tmp,"RP",2) == 0)
+	{
+		confirm_report(c,tmp+2);
+	}
+
 	memset(c->b,0,CLI_BUFR);
 	c->nc = 0;
 
+	return 0;
+}
+
+int confirm_report(RothagaClient *c,char *reported)
+{
+	printf("User %s has been reported, type /yes to agree or /no to disagree.\n",reported);
+	c->f = (void *)confirmation_of_report(c,reported);
+	
 	return 0;
 }
 
