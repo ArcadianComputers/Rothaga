@@ -190,7 +190,6 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 		write_client(c,"Malformed command: ");
 		write_client(c,c->b);
-		write_client(c,"\r\n");
 
 		goto pcend;
 	}
@@ -235,7 +234,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		if(c->cliname == NULL)
 		{
 			printf("Out of RAM! Killing client %i\n", c->c);
-			write_client(c,"0MOut of RAM, closing connection.\n");
+			write_client(c,"0MOut of RAM, closing connection.");
 			kill_client(c);
 			return -1;
 		}
@@ -243,7 +242,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		else 
 		{
 			printf("Out of RAM! Cannot change name for Client %i\n",c->c);
-			write_client(c,"0MCannot process request.\n");
+			write_client(c,"0MCannot process request.");
 			return -1;
 		}
 	}
@@ -252,13 +251,13 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	{
 		if (l-2 < MIN_NAME_LEN) /*Checking if the name is too short*/
 		{
-			write_client(c,"0NName too short.\n"); 
+			write_client(c,"0NName too short."); 
 			return -1;
 		}
 
 		else if (l > (NAME_LEN-2))	/* name too long */
 		{
-			write_client(c,"9NName too long.\n");
+			write_client(c,"9NName too long.");
 			return -1;
 		}
 
@@ -270,7 +269,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 	if (c->cliname == NULL)
 	{
-		snprintf(cm,l+NAME_LEN,"<%i> is now %s\n",c->c,tmp);
+		snprintf(cm,l+NAME_LEN,"<%i> is now %s",c->c,tmp);
 		c->cliname = malloc(NAME_LEN);
 		memset(c->cliname,0,NAME_LEN);
 		strncpy(c->cliname,tmp,l-2);
@@ -278,7 +277,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 	else
 	{
-		snprintf(cm,l+256,"<%s> is now %s\n",c->cliname,tmp);
+		snprintf(cm,l+256,"<%s> is now %s",c->cliname,tmp);
 		memset(c->cliname,0,strlen(c->cliname));
 		strncpy(c->cliname,tmp,l-2);		
 	}
@@ -318,7 +317,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		perror("malloc(): ");
 
 		printf("Out of RAM! Cannot report %s\n",cptr);
-		write_client(c,"0MCannot process request.\n");
+		write_client(c,"0MCannot process request.");
 		return -1;
 		
 	}
@@ -327,7 +326,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 	{
 		if (l > (NAME_LEN-2))	/* name too long */
 		{
-			write_client(c,"9NName too long.\n");
+			write_client(c,"9NName too long.");
 			return -1;
 		}
 
@@ -343,13 +342,13 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		perror("malloc(): ");
 
 		printf("Out of RAM! Cannot send report to users\n");
-		write_client(c,"0MCannot process request.\n");
+		write_client(c,"0MCannot process request.");
 		return -1;
 	}
 
 	memset(cm,0,CLI_BUFR);
 
-	snprintf(cm,CLI_BUFR-1,"RP%s\r\n",tmp);
+	snprintf(cm,CLI_BUFR-1,"RP%s",tmp);
 
 	for (i = 0; i < MAX_CLIS; i++)
 	{
@@ -374,7 +373,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 
 	if(c->cliname == NULL)
 	{
-		write_client(c,"0NYou must assign a name with SN<name>.\r\n");
+		write_client(c,"0NYou must assign a name with SN<name>.");
 
 		return -1;
 	}
@@ -388,7 +387,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 
 	memset(cm,0,l+256);
 
-	snprintf(cm,l+256,"<%s> %s\n",c->cliname,cptr); 
+	snprintf(cm,l+256,"<%s> %s",c->cliname,cptr); 
 
 	l = strlen(cm);
 	
@@ -406,7 +405,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 
 int send_pong(RothagaClient *c)
 {
-	write_client(c, "PG\r\n");
+	write_client(c, "PG");
 
 	return 0;
 }
@@ -447,10 +446,21 @@ int kill_client(RothagaClient *c)
 int write_client(RothagaClient *c, char *str)
 {
 	int re = 0;			/* return value */
+
 	int l = strlen(str);		/* length of data to write */
 
 	gpc = c;			/* associate c with gpc for SIGPIPE handling */
 	re = write(c->s,str,l);
+
+	if (re == -1)
+	{
+		if (errno == EPIPE)
+		{
+			printf("Caught EPIPE from failed write to client %i!\n",c->c);
+		}
+	}
+
+	re = write(c->s,"\r\n",2);
 
 	if (re == -1)
 	{
