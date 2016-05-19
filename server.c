@@ -260,7 +260,14 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 			write_client(c,"9NName too long.");
 			return -1;
 		}
-
+		for(i = 0, i<l-2, i++)
+		{
+			if(cisin(cliname[i]) == -1)
+			{
+				write_client(c,"1NName may only be alphanumeric.");
+				return -1;	
+			}	
+		} 
 		strncpy(tmp, cptr, NAME_LEN-1);		
 	}
 
@@ -477,6 +484,19 @@ void kill_server(int sig)
 {
 	printf("\n\nCaught Ctrl-C (%i), shutting down!\n\n",sig); 
 	exit(sig);
+}
+
+int cisin(char c)
+{
+	int i = 0;
+	int l = strlen(ALLOWED);
+
+	for(i = 0; i<l; i++)
+	{
+		if(c == ALLOWED[i]) return 0; 
+	}
+
+	return -1;
 }
 
 void sig_pipe_reset(int sig)

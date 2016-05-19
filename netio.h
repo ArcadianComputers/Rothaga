@@ -25,6 +25,7 @@
 #include <math.h>
 
 
+#define ALLOWED "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" 	/*Allowed characters for names*/
 #define NAME_LEN 256				/* max length of a clients name */
 #define MIN_NAME_LEN 2				/* min length of a clients name */
 #define SRV_PORT 7117				/* TCP port we listen on */
@@ -83,6 +84,7 @@ int send_report(RothagaClient *, RothagaClient *);		/* sends name of reported cl
 int confirm_report(RothagaClient *,char *);			/* confirms the reporting with all users */
 /* int karma_check(RothagaClient *); */				/* Checks karma levels for each user */
 int confirmation_of_report(RothagaClient *,char *);		/* send a yes answer in response to a report request */
+int cisin(char);						/*To check for allowed characters*/
 
 
 
