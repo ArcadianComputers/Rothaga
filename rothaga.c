@@ -199,7 +199,7 @@ int parse_console_command(RothagaClient *c)
 
 	else if (strncmp(tmp, "/ping",5) == 0)
 	{
-		ping_server(c);
+		ping_server(c,tmp+6);
 	}
 
 	else if (strncmp(tmp,"/rp",3) == 0)
@@ -242,13 +242,28 @@ int parse_console_command(RothagaClient *c)
 	return 0;
 }
 
-int ping_server(RothagaClient *c)
+int ping_server(RothagaClient *c, char *cliname)
 {
+	char *tmp = NULL;
 	clock_gettime(CLOCK_MONOTONIC, &c->ping);
-
-	printf("Sending ping\n");
-	write_to_server(c,"PN\r\n");
-		
+	if(strlen(cliname) == 0)
+	{
+		printf("Sending ping\n");
+		write_to_server(c,"PN\r\n");
+	}
+	else 
+	{
+		printf("Sending ping to: %s\n", cliname);
+		tmp = malloc(NAME_LEN);
+		if(tmp == NULL)
+		{		
+			perror("malloc() failed due to lack of memory.");
+			return -1;
+		}
+		memset(tmp,0,NAME_LEN);
+		snprintf(tmp,NAME_LEN-1,"PN%s\r\n",cliname);
+		write_to_server(c,tmp);	
+	}		
 	return 0;	
 }
 

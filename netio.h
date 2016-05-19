@@ -26,6 +26,7 @@
 
 
 #define NAME_LEN 256				/* max length of a clients name */
+#define MIN_NAME_LEN 2				/* min length of a clients name */
 #define SRV_PORT 7117				/* TCP port we listen on */
 #define CLI_BUFR 1024				/* size of client buffer */
 #define MAX_CLIS 256				/* maximum number of clients */
@@ -76,7 +77,7 @@ int report_user(RothagaClient *,char *);			/* allows you to report a user */
 int write_to_server(RothagaClient *, char *);			/* write a command out to the server */
 int send_message(RothagaClient *, char *);			/* send a global message */
 void sig_pipe_reset(int);					/* reset a client slot that was determined to be dead on write */
-int ping_server(RothagaClient *);				/* find the ping between your computer and the server*/
+int ping_server(RothagaClient *, char *);			/* find the ping between your computer and the server, or another client*/
 int send_pong(RothagaClient *);					/* Sends ping back */
 int send_report(RothagaClient *, RothagaClient *);		/* sends name of reported client to every user on the server */
 int confirm_report(RothagaClient *,char *);			/* confirms the reporting with all users */
