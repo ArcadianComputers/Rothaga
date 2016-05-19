@@ -209,12 +209,14 @@ int parse_console_command(RothagaClient *c)
 		printf("If you are sure you want to report <%s>, please type /yes, if not please /no\n\n",tmp);
 		
 		c->argyon = malloc(NAME_LEN);
+
 		if(c->argyon == NULL)
 		{
 			perror("malloc()");
 			printf("Lacking required RAM\n");
 			return -1;
 		}
+
 		snprintf(c->argyon,NAME_LEN-1,"%s",tmp);
 		
 		c->f = (void *)report_user;
@@ -228,6 +230,9 @@ int parse_console_command(RothagaClient *c)
 	else if (strncmp(tmp,"/no",3) == 0)
 	{
 		printf("Guess not then...\n\n");
+
+		if (c->argyon != NULL) free(c->argyon);
+		c->f = (void *)NULL;	/* don't leave the gun loaded */
 	}
 
 	else
@@ -246,31 +251,38 @@ int ping_server(RothagaClient *c, char *cliname)
 {
 	char *tmp = NULL;
 	clock_gettime(CLOCK_MONOTONIC, &c->ping);
+
 	if(strlen(cliname) == 0)
 	{
 		printf("Sending ping\n");
-		write_to_server(c,"PN\r\n");
+		write_to_server(c,"PN");
 	}
+
 	else 
 	{
 		printf("Sending ping to: %s\n", cliname);
+
 		tmp = malloc(NAME_LEN);
+
 		if(tmp == NULL)
 		{		
 			perror("malloc() failed due to lack of memory.");
 			return -1;
 		}
+
 		memset(tmp,0,NAME_LEN);
-		snprintf(tmp,NAME_LEN-1,"PN%s\r\n",cliname);
+		snprintf(tmp,NAME_LEN-1,"PN%s",cliname);
 		write_to_server(c,tmp);	
-	}		
+	}
+
 	return 0;	
 }
 
 int print_pong(RothagaClient *c)
 {
 	clock_gettime(CLOCK_MONOTONIC, &c->pong);
-	printf("Pong: %.03f milliseconds\n",((c->pong.tv_nsec-c->ping.tv_nsec)/1.0e6));
+
+	printf("Pong: %.03f milliseconds\n",((c->pong.tv_nsec - c->ping.tv_nsec) / 1.0e6));
 
 	return 0;
 }
@@ -287,7 +299,7 @@ int set_name(RothagaClient *c, char *cliname)
 		exit(-1);
 	}
 
-	snprintf(tmp,CLI_BUFR-1,"SN%s\r\n",cliname);
+	snprintf(tmp,CLI_BUFR-1,"SN%s",cliname);
 
 	write_to_server(c,tmp);
 
@@ -299,10 +311,12 @@ int set_name(RothagaClient *c, char *cliname)
 
 	return 0;
 }
+
 int confirmation_of_report(RothagaClient *c,char *reported)
 {
 	return 0;
 }
+
 int report_user(RothagaClient *c, char *argyon)
 {
 	char *tmp = NULL;
@@ -315,7 +329,7 @@ int report_user(RothagaClient *c, char *argyon)
 		exit(-1);
 	}
 	
-	snprintf(tmp,CLI_BUFR-1,"RP%s\r\n",argyon);
+	snprintf(tmp,CLI_BUFR-1,"RP%s",argyon);
 
 	write_to_server(c,tmp);
 
@@ -336,7 +350,7 @@ int send_message(RothagaClient *c, char *msg)
 		exit(-1);
 	}
 
-	snprintf(tmp,CLI_BUFR-1,"SM%s\r\n",msg);
+	snprintf(tmp,CLI_BUFR-1,"SM%s",msg);
 
 	write_to_server(c,tmp);
 
@@ -352,6 +366,14 @@ int write_to_server(RothagaClient *c, char *cmd)
 	printf("SENDING: %s",cmd);
 
 	re = write(c->s,cmd,strlen(cmd));
+
+	if (re == -1)
+	{
+		perror("write() ");
+		return -1;
+	}
+
+	re = write(c->s,"\r\n",2);
 
 	if (re == -1)
 	{
@@ -379,7 +401,7 @@ int parse_server_message(RothagaClient *c)
 
 	memset(tmp,0,CLI_BUFR);
 
-	strncpy(tmp,c->b,l-2);	/* skip the /r/n combo */
+	strncpy(tmp,c->b,l-2);	/* skip the \r\n combo */
 
 	printf("*** %s\n",tmp);
 
