@@ -276,7 +276,10 @@ int set_name(RothagaClient *c, char *cliname)
 
 	return 0;
 }
-
+int confirmation_of_report(RothagaClient *c,char *reported)
+{
+	return 0;
+}
 int report_user(RothagaClient *c, char *argyon)
 {
 	char *tmp = NULL;
@@ -371,7 +374,7 @@ int parse_server_message(RothagaClient *c)
 int confirm_report(RothagaClient *c,char *reported)
 {
 	printf("User %s has been reported, type /yes to agree or /no to disagree.\n",reported);
-	c->f = (void *)confirmation_of_report(c,reported);
+	c->f = (void *)confirmation_of_report;
 	
 	return 0;
 }
