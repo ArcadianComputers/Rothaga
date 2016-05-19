@@ -260,14 +260,16 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 			write_client(c,"9NName too long.");
 			return -1;
 		}
-		for(i = 0, i<l-2, i++)
+
+		for (i = 0; i<l-2; i++)	/* ignore the \r\n combo */
 		{
-			if(cisin(cliname[i]) == -1)
+			if (cisin(cptr[i]) == -1)
 			{
-				write_client(c,"1NName may only be alphanumeric.");
+				write_client(c,"1NNames may only be alphanumeric.");
 				return -1;	
 			}	
 		} 
+
 		strncpy(tmp, cptr, NAME_LEN-1);		
 	}
 
