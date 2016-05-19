@@ -255,7 +255,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 			return -1;
 		}
 
-		else if (l > (NAME_LEN-2))	/* name too long */
+		else if (l-2 > NAME_LEN)	/* name too long */
 		{
 			write_client(c,"9NName too long.");
 			return -1;
@@ -270,7 +270,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 			}	
 		} 
 
-		strncpy(tmp, cptr, NAME_LEN-1);		
+		strncpy(tmp, cptr, NAME_LEN);		
 	}
 
 	cm = malloc(l+NAME_LEN);
