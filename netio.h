@@ -46,9 +46,8 @@ typedef struct
 	ftc f;							/* anon function pointer */
 	clock_t ts;						/*Captures timestamp*/
 	struct tms *tb;						/*Time holder*/
-	long ms;						/*milliseconds*/
-	time_t wts;						/*seconds*/
-	struct timespec spec;					/*To grab time*/
+	struct timespec ping;					/*Outgoing ping*/
+	struct timespec pong;					/*Incoming pong*/
 	int tr;							/* number of times reported */
 	int karma;						/* karma (duh) */
 

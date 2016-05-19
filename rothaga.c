@@ -244,12 +244,20 @@ int parse_console_command(RothagaClient *c)
 
 int ping_server(RothagaClient *c)
 {
-	c->ts = times(c->tb);
-	clock_gettime(CLOCK_MONOTONIC, &c->spec);
-	c->ms = round(c->spec.tv_nsec / 1.0e6);
-	printf("Sending ping (%li) 0.03%ld.03%ld\n",c->ts, c->ms, c->spec.tv_nsec);
+	clock_gettime(CLOCK_MONOTONIC, &c->ping);
+
+	printf("Sending ping\n");
 	write_to_server(c,"PN\r\n");
+		
 	return 0;	
+}
+
+int print_pong(RothagaClient *c)
+{
+	clock_gettime(CLOCK_MONOTONIC, &c->pong);
+	printf("Pong: %.03f milliseconds\n",((c->pong.tv_nsec-c->ping.tv_nsec)/1.0e6));
+
+	return 0;
 }
 
 int set_name(RothagaClient *c, char *cliname)
@@ -363,6 +371,11 @@ int parse_server_message(RothagaClient *c)
 	if (strncmp(tmp,"RP",2) == 0)
 	{
 		confirm_report(c,tmp+2);
+	}
+
+	else if(strncmp(tmp,"PG",2) == 0)
+	{
+		print_pong(c);
 	}
 
 	memset(c->b,0,CLI_BUFR);
