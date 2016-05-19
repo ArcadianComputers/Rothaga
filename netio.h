@@ -26,7 +26,7 @@
 
 
 #define ALLOWED "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" 	/*Allowed characters for names*/
-#define NAME_LEN 256				/* max length of a clients name */
+#define NAME_LEN 16				/* max length of a clients name */
 #define MIN_NAME_LEN 2				/* min length of a clients name */
 #define SRV_PORT 7117				/* TCP port we listen on */
 #define CLI_BUFR 1024				/* size of client buffer */
