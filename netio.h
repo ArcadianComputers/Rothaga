@@ -79,8 +79,8 @@ int ping_server(RothagaClient *);				/* find the ping between your computer and 
 int send_pong(RothagaClient *);					/* Sends ping back */
 int send_report(RothagaClient *, RothagaClient *);		/* sends name of reported client to every user on the server */
 int confirm_report(RothagaClient *,char *);			/* confirms the reporting with all users */
-/* int karma_check(RothagaClient *); */				/* Checks karma levels for each use */
-
+/* int karma_check(RothagaClient *); */				/* Checks karma levels for each user */
+int confirmation_of_report(c,reported);				/* send a yes answer in response to a report request */
 
 
 

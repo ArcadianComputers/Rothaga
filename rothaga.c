@@ -351,7 +351,7 @@ int parse_server_message(RothagaClient *c)
 
 	l = strlen(c->b);
 
-	memset(tmp,0,CLI_BUFRP);
+	memset(tmp,0,CLI_BUFR);
 
 	strncpy(tmp,c->b,l-2);	/* skip the /r/n combo */
 
