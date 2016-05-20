@@ -32,6 +32,7 @@
 #define CLI_BUFR 1024				/* size of client buffer */
 #define MAX_CLIS 256				/* maximum number of clients */
 #define MAX_SRVS 1				/* maximum number of servers */
+#define KARMA_LOSS_NAME 10			/*Value deducted from karma for name change*/
 
 typedef void (*ftc)(void *, char *);		/* void function pointer */ /* Jon hates this one */
 

@@ -300,7 +300,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		snprintf(cm,CLI_BUFR-1,"NN<%s> is now %s",c->cliname,tmp);
 		memset(c->cliname,0,NAME_LEN);
 		strncpy(c->cliname,tmp,l-2);
-		c->karma-=10;		
+		c->karma-=KARMA_LOSS_NAME;		
 	}
 	
 	for (i = 0; i < MAX_CLIS; i++)
