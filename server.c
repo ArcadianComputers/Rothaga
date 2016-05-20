@@ -293,6 +293,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		c->cliname = malloc(NAME_LEN);
 		memset(c->cliname,0,NAME_LEN);
 		strncpy(c->cliname,tmp,l-2);
+		c->karma=KARMA_BASE;
 	}
 
 	else

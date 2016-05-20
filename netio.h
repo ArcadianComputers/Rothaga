@@ -33,6 +33,7 @@
 #define MAX_CLIS 256				/* maximum number of clients */
 #define MAX_SRVS 1				/* maximum number of servers */
 #define KARMA_LOSS_NAME 10			/*Value deducted from karma for name change*/
+#define KARMA_BASE 25				/*Starting level for karma*/
 
 typedef void (*ftc)(void *, char *);		/* void function pointer */ /* Jon hates this one */
 
