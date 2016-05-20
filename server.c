@@ -217,7 +217,8 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	printf("Client %s message differential was %f\n",c->cliname,f);
 
 	if ((f / 1.0e6) < 1.0) c->karma--;
-
+	
+	c->fstmes = c->sndmes;	
 
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
