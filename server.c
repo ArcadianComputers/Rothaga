@@ -254,13 +254,21 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	{
 		if (l-2 < MIN_NAME_LEN) /*Checking if the name is too short*/
 		{
-			write_client(c,"0NName too short."); 
+			write_client(c,"0NName too short.");
+
+			free(cm);
+			free(tmp);
+
 			return -1;
 		}
 
 		else if (l-2 > NAME_LEN)	/* name too long */
 		{
 			write_client(c,"9NName too long.");
+			
+			free(cm);
+			free(tmp);
+
 			return -1;
 		}
 
