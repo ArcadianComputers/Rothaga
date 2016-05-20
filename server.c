@@ -246,6 +246,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		{
 			printf("Out of RAM! Cannot change name for Client %i\n",c->c);
 			write_client(c,"0MCannot process request.");
+			free(tmp);
 			return -1;
 		}
 	}
@@ -256,7 +257,6 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		{
 			write_client(c,"0NName too short.");
 
-			free(cm);
 			free(tmp);
 
 			return -1;
@@ -266,7 +266,6 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		{
 			write_client(c,"9NName too long.");
 			
-			free(cm);
 			free(tmp);
 
 			return -1;
@@ -345,6 +344,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		if (l > (NAME_LEN-2))	/* name too long */
 		{
 			write_client(c,"9NName too long.");
+			free(tmp);
 			return -1;
 		}
 
@@ -387,7 +387,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	char *cm = NULL;
 	char *cptr = NULL;
 
-	if(c->cliname == NULL)
+	if(strlen(c->cliname) == 0)
 	{
 		write_client(c,"0NYou must assign a name with SN<name>.");
 
@@ -399,11 +399,11 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	cptr = c->b;
 	cptr += 2;
 
-	cm = malloc(l+256);
+	cm = malloc(CLI_BUFR);
 
-	memset(cm,0,l+256);
+	memset(cm,0,CLI_BUFR);
 
-	snprintf(cm,l+256,"<%s> %s",c->cliname,cptr); 
+	snprintf(cm,CLI_BUFR-1,"<%s(%i)> %s",c->cliname,c->karma,cptr); 
 
 	l = strlen(cm);
 	
@@ -411,10 +411,14 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	{
 		if (rc[i].s > 0)
 		{
-			printf("%s\n",cm);
+			/* printf("%s\n",cm); */
 			write_client(&rc[i],cm);
 		}  	
 	}
+
+	c->karma++;	/* give karma for participating in the chat */
+	
+	free(cm);
 
 	return 0;
 }
@@ -455,7 +459,8 @@ int kill_client(RothagaClient *c)
 	}
 
 	c->s = -2;  			/* make sure we set it as free */
-
+	c->karma = 0;			/* no one else gets the karma */
+			
 	return 0;
 }
 
@@ -476,7 +481,7 @@ int write_client(RothagaClient *c, char *str)
 		}
 	}
 
-	if ((str[l-1] == 13) && (str[l-2] == 10)) goto wend;  
+	if ((str[l-1] == 10) && (str[l-2] == 13)) goto wend;  
 
 	re = write(c->s,"\r\n",2);
 
