@@ -52,6 +52,8 @@ typedef struct
 	struct tms *tb;						/*Time holder*/
 	struct timespec ping;					/*Outgoing ping*/
 	struct timespec pong;					/*Incoming pong*/
+	struct timespec fstmes;					/*Timestamp the last message sent*/
+	struct timespec sndmes;					/*Timestamp the current message*/
 	int tr;							/* number of times reported */
 	int karma;						/* karma (duh) */
 
@@ -87,6 +89,7 @@ int confirm_report(RothagaClient *,char *);			/* confirms the reporting with all
 /* int karma_check(RothagaClient *); */				/* Checks karma levels for each user */
 int confirmation_of_report(RothagaClient *,char *);		/* send a yes answer in response to a report request */
 int cisin(char);						/*To check for allowed characters*/
+
 
 
 

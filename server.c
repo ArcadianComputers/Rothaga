@@ -180,6 +180,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 {
 	int l = 0;
 	char cmd[3];
+	float f = 0;
 
 	cmd[0] = 0;
 	cmd[1] = 0;
@@ -209,7 +210,15 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 		
 		return -1;
 	}
-		
+	
+	clock_gettime(CLOCK_MONOTONIC, &c->sndmes);
+	f = c->sndmes.tv_nsec - c->fstmes.tv_nsec;
+	
+	printf("Client %s message differential was %f\n",c->cliname,f);
+
+	if ((f / 1.0e6) < 1.0) c->karma--;
+
+
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
 	else if (strncmp(cmd,"PN",2)==0) send_pong(c);
@@ -302,6 +311,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		memset(c->cliname,0,NAME_LEN);
 		strncpy(c->cliname,tmp,l-2);
 		c->karma=KARMA_BASE;
+		clock_gettime(CLOCK_MONOTONIC, &c->fstmes);
 	}
 
 	else
