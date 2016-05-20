@@ -285,6 +285,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 	cm = malloc(CLI_BUFR);
 	memset(cm,0,CLI_BUFR);
+	
 
 	if (strlen(c->cliname) == 0)
 	{
@@ -298,7 +299,8 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	{
 		snprintf(cm,CLI_BUFR-1,"NN<%s> is now %s",c->cliname,tmp);
 		memset(c->cliname,0,NAME_LEN);
-		strncpy(c->cliname,tmp,l-2);		
+		strncpy(c->cliname,tmp,l-2);
+		c->karma-=10;		
 	}
 	
 	for (i = 0; i < MAX_CLIS; i++)
@@ -309,6 +311,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		}  	
 	}
 
+	
 	free(cm);
 	free(tmp);
 
