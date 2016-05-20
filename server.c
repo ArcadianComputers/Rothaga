@@ -212,12 +212,22 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	}
 	
 	clock_gettime(CLOCK_MONOTONIC, &c->sndmes);
-	f = c->sndmes.tv_nsec - c->fstmes.tv_nsec;
-	
-	printf("Client %s message differential was %lu, %lu\n",c->cliname,f,(f/1000000));
+	f = c->sndmes.tv_sec - c->fstmes.tv_sec;	
 
-	if ((f / 1000000) < 1.0) c->karma--;
-	
+	/*printf("Client %s message differential was %lu\n",c->cliname,f);*/
+
+	if (f <= 1)
+	{
+		c->karma-=(KARMA_LOSS_FLOOD+c->kv);
+		
+		c->kv += KARMA_LOSS_VECTOR;
+	}
+
+	if ((f >= 2) && (c->kv >= KARMA_LOSS_VECTOR))
+	{
+		c->kv -= KARMA_LOSS_VECTOR;
+	}
+
 	c->fstmes = c->sndmes;	
 
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);

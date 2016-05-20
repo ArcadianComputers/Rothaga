@@ -34,6 +34,8 @@
 #define MAX_SRVS 1				/* maximum number of servers */
 #define KARMA_LOSS_NAME 10			/*Value deducted from karma for name change*/
 #define KARMA_BASE 25				/*Starting level for karma*/
+#define KARMA_LOSS_FLOOD 2			/*Penalty for flooding the chat*/
+#define KARMA_LOSS_VECTOR 5			/*Exponential rate that karma loss increases*/
 
 typedef void (*ftc)(void *, char *);		/* void function pointer */ /* Jon hates this one */
 
@@ -56,6 +58,7 @@ typedef struct
 	struct timespec sndmes;					/*Timestamp the current message*/
 	int tr;							/* number of times reported */
 	int karma;						/* karma (duh) */
+	int kv;							/*Karma vector*/
 
 } RothagaClient;
 
