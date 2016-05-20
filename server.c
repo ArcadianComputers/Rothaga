@@ -214,9 +214,9 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	clock_gettime(CLOCK_MONOTONIC, &c->sndmes);
 	f = c->sndmes.tv_nsec - c->fstmes.tv_nsec;
 	
-	printf("Client %s message differential was %lu\n",c->cliname,(f/1.0e6));
+	printf("Client %s message differential was %lu\n",c->cliname,(f/1000000));
 
-	if ((f / 1.0e6) < 1.0) c->karma--;
+	if ((f / 1000000) < 1.0) c->karma--;
 	
 	c->fstmes = c->sndmes;	
 
