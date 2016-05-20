@@ -202,6 +202,14 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	printf("Client %i said: %s",c->c,c->b);
 
+	if(c->karma < 0)
+	{
+		write_client(c,"You dun goofed.");
+		kill_client(c);
+		
+		return -1;
+	}
+		
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
 	else if (strncmp(cmd,"PN",2)==0) send_pong(c);
