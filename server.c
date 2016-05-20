@@ -42,7 +42,10 @@ int main(int argc, char **argv)
 		c->b = malloc(CLI_BUFR);
 		memset(c->b,0,CLI_BUFR);
 
-		if (c->b == NULL)
+		c->cliname = malloc(NAME_LEN);
+		memset(c->cliname,0,NAME_LEN);
+
+		if (c->b == NULL || c->cliname == NULL)
 		{
 			perror("malloc(): ");
 			exit(-1);
@@ -197,7 +200,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	cmd[0] = c->b[0];
 	cmd[1] = c->b[1];
 
-	printf("Client %i said: %s\n",c->c,c->b);
+	printf("Client %i said: %s",c->c,c->b);
 
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
@@ -231,7 +234,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	{
 		perror("malloc(): ");
 
-		if(c->cliname == NULL)
+		if(strlen(c->cliname) == 0)
 		{
 			printf("Out of RAM! Killing client %i\n", c->c);
 			write_client(c,"0MOut of RAM, closing connection.");
@@ -276,7 +279,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	cm = malloc(CLI_BUFR);
 	memset(cm,0,CLI_BUFR);
 
-	if (c->cliname == NULL)
+	if (strlen(c->cliname) == 0)
 	{
 		snprintf(cm,CLI_BUFR-1,"NN<%i> is now %s",c->c,tmp);
 		c->cliname = malloc(NAME_LEN);
@@ -369,8 +372,6 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 
 }
 
-
-
 int parse_client_message(RothagaClient *rc, RothagaClient *c)
 {
 	int i = 0;
@@ -416,6 +417,7 @@ int send_pong(RothagaClient *c)
 
 	return 0;
 }
+
 RothagaClient *find_free_client(RothagaClient *rc)
 {
 	int i = 0;
@@ -442,7 +444,6 @@ int kill_client(RothagaClient *c)
 	if (c->cliname != NULL)		/* remove client name */
 	{
 		memset(c->cliname,0,NAME_LEN);
-		free(c->cliname);
 	}
 
 	c->s = -2;  			/* make sure we set it as free */
@@ -467,6 +468,8 @@ int write_client(RothagaClient *c, char *str)
 		}
 	}
 
+	if ((str[l-1] == 13) && (str[l-2] == 10)) goto wend;  
+
 	re = write(c->s,"\r\n",2);
 
 	if (re == -1)
@@ -476,6 +479,8 @@ int write_client(RothagaClient *c, char *str)
 			printf("Caught EPIPE from failed write to client %i!\n",c->c);
 		}
 	}
+
+	wend:
 
 	return 0;
 }
