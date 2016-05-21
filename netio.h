@@ -76,8 +76,8 @@ RothagaClient *find_free_client(RothagaClient *);		/* find and return an open cl
 int set_client_name(RothagaClient *, RothagaClient *);		/* parse SN command to set the client's name */
 int parse_client_message(RothagaClient *, RothagaClient *);	/* parse SM command to send a global message */
 int parse_client_command(RothagaClient *, RothagaClient *);	/* parse a command from a client */
-int kill_client(RothagaClient *);				/* close a client connection and free it's slot */
-int write_client(RothagaClient *, char *);			/* write data to a client */
+int kill_client(RothagaClient *,RothagaClient *, char *);	/* close a client connection and free it's slot */
+int write_client(RothagaClient *,RothagaClient*, char *);	/* write data to a client */
 int parse_console_command(RothagaClient *);			/* parse a command from the console */
 int parse_server_message(RothagaClient *);			/* parse a message from the server */
 int set_name(RothagaClient *, char *);				/* set our name on the network */
@@ -86,7 +86,7 @@ int write_to_server(RothagaClient *, char *);			/* write a command out to the se
 int send_message(RothagaClient *, char *);			/* send a global message */
 void sig_pipe_reset(int);					/* reset a client slot that was determined to be dead on write */
 int ping_server(RothagaClient *, char *);			/* find the ping between your computer and the server, or another client*/
-int send_pong(RothagaClient *);					/* Sends ping back */
+int send_pong(RothagaClient *, RothagaClient *);		/* Sends ping back */
 int send_report(RothagaClient *, RothagaClient *);		/* sends name of reported client to every user on the server */
 int confirm_report(RothagaClient *,char *);			/* confirms the reporting with all users */
 /* int karma_check(RothagaClient *); */				/* Checks karma levels for each user */
