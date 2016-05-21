@@ -358,6 +358,19 @@ int set_name(RothagaClient *c, char *cliname)
 
 int confirmation_of_report(RothagaClient *c,char *reported)
 {
+	char *tmp = NULL;
+	tmp = malloc(CLI_BUFR);
+
+	if (tmp == NULL)
+	{
+		perror("malloc:() ");
+		exit(-1);
+	}
+	
+	snprintf(tmp,CLI_BUFR-1,"CR%",reported)
+
+	write_to_server(c,tmp);
+
 	return 0;
 }
 

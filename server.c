@@ -234,6 +234,13 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
 	else if (strncmp(cmd,"PN",2)==0) send_pong(c);
 	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
+	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c)	
+	
+	
+	
+	
+	
+	
 
 	pcend:
 
@@ -369,7 +376,6 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		printf("Out of RAM! Cannot report %s\n",cptr);
 		write_client(c,"0MCannot process request.");
 		return -1;
-		
 	}
 
 	else 
@@ -385,7 +391,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 
 		strncpy(tmp, cptr, l-2);		
 	}
-	
+
 	cm = malloc(CLI_BUFR);
 	
 	if (cm == NULL)
@@ -411,6 +417,17 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 	
 	return 0;
 
+}
+
+int confirm_report(RothagaClient *rc, RothagaClient *c)
+{
+	int i = 0;              /* incrementation counter */
+        int l = 0;              /* length counter */
+        char *cm = NULL;
+        char *tmp = NULL;
+        char *cptr = NULL;
+	
+	lookup_client_by_name(
 }
 
 int parse_client_message(RothagaClient *rc, RothagaClient *c)
