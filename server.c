@@ -216,14 +216,14 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	/*printf("Client %s message differential was %lu\n",c->cliname,f);*/
 
-	if (f <= 1)
+	if (f <= 1)					/* if you're bad, you lose karma at an increasing rate */
 	{
 		c->karma-=(KARMA_LOSS_FLOOD+c->kv);
 		
 		c->kv += KARMA_LOSS_VECTOR;
 	}
 
-	if ((f >= 2) && (c->kv >= KARMA_LOSS_VECTOR))
+	if ((f >= 2) && (c->kv >= KARMA_LOSS_VECTOR))	/* if you're good, you lose karma at a decreasing rate */
 	{
 		c->kv -= KARMA_LOSS_VECTOR;
 	}
