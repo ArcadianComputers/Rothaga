@@ -4,6 +4,7 @@
 #include "fileio.h"
 #include "encio.h"
 
+RothagaClient *gprc;				/* global SIGPIPE Array pointer */
 RothagaClient *gpc;				/* global SIGPIPE Client pointer */
 
 int main(int argc, char **argv)
@@ -148,7 +149,7 @@ int main(int argc, char **argv)
 			if (rx == 0)
 			{
 				printf("Client: %i disconnected!\n",c->c);
-				kill_client(c);
+				kill_client(rc,c,"Client Disconnected.");
 				rx = -2;
 			}
 		
@@ -157,7 +158,7 @@ int main(int argc, char **argv)
 				if (c->nc > CLI_BUFR)		/* buffer overflow attempt -Jon */
 				{
 					printf("Possible Buffer Overflow attempt! Killing client %i on socket #%i\n",c->c,c->s);
-					kill_client(c);
+					kill_client(rc,c,"Client Disconnected: Possible Buffer Overflow.");
 					continue;
 				}
 
@@ -192,8 +193,8 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	{
 		printf("Malformed command from client: %i on socket #%i\n",c->c,c->s);
 
-		write_client(c,"Malformed command: ");
-		write_client(c,c->b);
+		write_client(rc,c,"Malformed command: ");
+		write_client(rc,c,c->b);
 
 		goto pcend;
 	}
@@ -205,8 +206,8 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	if(c->karma < 0)
 	{
-		write_client(c,"You dun goofed.");
-		kill_client(c);
+		write_client(rc,c,"You dun goofed.");
+		kill_client(rc,c,"Kicked for negative Karma.");
 		
 		return -1;
 	}
@@ -232,8 +233,15 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
-	else if (strncmp(cmd,"PN",2)==0) send_pong(c);
+	else if (strncmp(cmd,"PN",2)==0) send_pong(rc,c);
 	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
+	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c)	
+	
+	
+	
+	
+	
+	
 
 	pcend:
 
@@ -265,15 +273,15 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		if(strlen(c->cliname) == 0)
 		{
 			printf("Out of RAM! Killing client %i\n", c->c);
-			write_client(c,"0MOut of RAM, closing connection.");
-			kill_client(c);
+			write_client(rc,c,"0MOut of RAM, closing connection.");
+			kill_client(rc,c,"Client Disconnected: Low RAM.");
 			return -1;
 		}
 
 		else 
 		{
 			printf("Out of RAM! Cannot change name for Client %i\n",c->c);
-			write_client(c,"0MCannot process request.");
+			write_client(rc,c,"0MCannot process request.");
 			free(tmp);
 			return -1;
 		}
@@ -283,7 +291,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	{
 		if (l-2 < MIN_NAME_LEN) /*Checking if the name is too short*/
 		{
-			write_client(c,"0NName too short.");
+			write_client(rc,c,"0NName too short.");
 
 			free(tmp);
 
@@ -292,7 +300,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 		else if (l-2 > NAME_LEN)	/* name too long */
 		{
-			write_client(c,"9NName too long.");
+			write_client(rc,c,"9NName too long.");
 			
 			free(tmp);
 
@@ -303,7 +311,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		{
 			if (cisin(cptr[i]) == -1)
 			{
-				write_client(c,"1NNames may only be alphanumeric.");
+				write_client(rc,c,"1NNames may only be alphanumeric.");
 				return -1;	
 			}	
 		} 
@@ -337,7 +345,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	{
 		if (rc[i].s > 0)
 		{
-			write_client(&rc[i],cm);
+			write_client(rc,&rc[i],cm);
 		}  	
 	}
 
@@ -367,16 +375,15 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		perror("malloc(): ");
 
 		printf("Out of RAM! Cannot report %s\n",cptr);
-		write_client(c,"0MCannot process request.");
+		write_client(rc,c,"0MCannot process request.");
 		return -1;
-		
 	}
 
 	else 
 	{
 		if (l > (NAME_LEN-2))	/* name too long */
 		{
-			write_client(c,"9NName too long.");
+			write_client(rc,c,"9NName too long.");
 			free(tmp);
 			return -1;
 		}
@@ -385,7 +392,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 
 		strncpy(tmp, cptr, l-2);		
 	}
-	
+
 	cm = malloc(CLI_BUFR);
 	
 	if (cm == NULL)
@@ -393,7 +400,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		perror("malloc(): ");
 
 		printf("Out of RAM! Cannot send report to users\n");
-		write_client(c,"0MCannot process request.");
+		write_client(rc,c,"0MCannot process request.");
 		return -1;
 	}
 
@@ -405,12 +412,22 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 	{
 		if (rc[i].s > 0)
 		{
-			write_client(&rc[i],cm);
+			write_client(rc,&rc[i],cm);
 		}  	
 	}
 	
 	return 0;
+}
 
+int confirm_report(RothagaClient *rc, RothagaClient *c)
+{
+	int i = 0;              /* incrementation counter */
+        int l = 0;              /* length counter */
+        char *cm = NULL;
+        char *tmp = NULL;
+        char *cptr = NULL;
+	
+	lookup_client_by_name(
 }
 
 int parse_client_message(RothagaClient *rc, RothagaClient *c)
@@ -422,7 +439,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 
 	if(strlen(c->cliname) == 0)
 	{
-		write_client(c,"0NYou must assign a name with SN<name>.");
+		write_client(rc,c,"0NYou must assign a name with SN<name>.");
 
 		return -1;
 	}
@@ -445,7 +462,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 		if (rc[i].s > 0)
 		{
 			/* printf("%s\n",cm); */
-			write_client(&rc[i],cm);
+			write_client(rc,&rc[i],cm);
 		}  	
 	}
 
@@ -456,9 +473,9 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	return 0;
 }
 
-int send_pong(RothagaClient *c)
+int send_pong(RothagaClient *rc, RothagaClient *c)
 {
-	write_client(c, "PG");
+	write_client(rc, c, "PG");
 
 	return 0;
 }
@@ -478,9 +495,15 @@ RothagaClient *find_free_client(RothagaClient *rc)
 	return NULL;
 }
 
-int kill_client(RothagaClient *c)
+int kill_client(RothagaClient *rc, RothagaClient *c, char *reason)
 {
+	int i=0;
 	printf("Killing client %i, socket #%i!\n",c->c,c->s);
+
+	for(i=0; i<MAX_CLIS; i++)
+	{
+		write_client(rc,rc[i].s,reason);
+	}
 
 	close(c->s);			/* close the socket */
 
@@ -497,12 +520,13 @@ int kill_client(RothagaClient *c)
 	return 0;
 }
 
-int write_client(RothagaClient *c, char *str)
+int write_client(RothagaClient *rc, RothagaClient *c, char *str)
 {
 	int re = 0;			/* return value */
 
 	int l = strlen(str);		/* length of data to write */
-
+	
+	gprc = rc;			/* pointer to entire rothaga structure */
 	gpc = c;			/* associate c with gpc for SIGPIPE handling */
 	re = write(c->s,str,l);
 
@@ -553,6 +577,6 @@ int cisin(char c)
 void sig_pipe_reset(int sig)
 {
 	printf("\n\nCaught SIGPIPE (%i) from Client %i!\n\n",sig,gpc->c);
-	kill_client(gpc);
+	kill_client(gprc,gpc,"SIGPIPE");
 	return;
 }

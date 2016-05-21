@@ -9,17 +9,27 @@
 #include "netio.h"
 #include "encio.h"
 #include "agathor.h"
+
+#ifdef OSX
+#include "mach_gettime.h"
+#include <mach/mach_time.h>
+#endif
+
 /* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
 
 #define WIN_CFG "C:\\Users\\Admin\\workspace\\Rothaga\\Rothaga.ini"
 #define LNX_CFG "./rothaga.ini"
+
+#define MT_NANO (+1.0E-9)
+#define MT_GIGA UINT64_C(1000000000)
 
 #define ENT_SRC "/dev/random"
 
 int main (int argc, char **argv)
 {
 	int re = 0;						/* return code */
-	char x[1],y[1];						/* temp char holders for net/con io */
+	char 
+	x[1],y[1];						/* temp char holders for net/con io */
 	struct sockaddr_in sin;					/* network structure */
 	RothagaClient rc;					/* local client structure */
 
@@ -49,7 +59,7 @@ int main (int argc, char **argv)
 	}
 	
 	memset(rc.cliname, 0, NAME_LEN);
-	snprintf(rc.cliname, NAME_LEN-1, argv[1]);
+	strncpy(rc.cliname, argv[1], NAME_LEN-1);
 
 	printf("Client chose name: %s\n", rc.cliname);
 	/* printf("plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
@@ -85,8 +95,8 @@ int main (int argc, char **argv)
 	memset(rc.b,0,CLI_BUFR);
 	memset(rc.k,0,CLI_BUFR);
 
-	x[1] = 0;
-	y[1] = 0;
+	x[0] = 0;
+	y[0] = 0;
 
 	re = fcntl(rc.s,F_SETFL,O_NONBLOCK);
 
@@ -104,7 +114,7 @@ int main (int argc, char **argv)
 		return -1;
 	}
 
-	set_name(&rc,rc.cliname);	/* set our name as soon as we connect */
+	set_name(&rc,argv[1]);	/* set our name as soon as we connect */
 
 	while(1)
 	{
@@ -247,6 +257,40 @@ int parse_console_command(RothagaClient *c)
 	return 0;
 }
 
+#ifdef OSX
+
+int clock_gettime(clockid_t clk_id, struct timespec *tp)
+{
+    kern_return_t retval = KERN_SUCCESS;
+    if( clk_id == TIMER_ABSTIME) {
+        if (!mt_timestart) { // only one timer, initilized on the first call to the TIMER
+            mach_timebase_info_data_t tb = { 0 };
+            mach_timebase_info(&tb);
+            mt_timebase = tb.numer;
+            mt_timebase /= tb.denom;
+            mt_timestart = mach_absolute_time();
+        }
+
+        double diff = (mach_absolute_time() - mt_timestart) * mt_timebase;
+        tp->tv_sec = diff * MT_NANO;
+        tp->tv_nsec = diff - (tp->tv_sec * MT_GIGA);
+    }
+    else { // other clk_ids are mapped to the coresponding mach clock_service
+        clock_serv_t cclock;
+        mach_timespec_t mts;
+
+        host_get_clock_service(mach_host_self(), clk_id, &cclock);
+        retval = clock_get_time(cclock, &mts);
+        mach_port_deallocate(mach_task_self(), cclock);
+
+        tp->tv_sec = mts.tv_sec;
+        tp->tv_nsec = mts.tv_nsec;
+    }
+
+    return retval;
+}
+#endif
+
 int ping_server(RothagaClient *c, char *cliname)
 {
 	char *tmp = NULL;
@@ -314,6 +358,19 @@ int set_name(RothagaClient *c, char *cliname)
 
 int confirmation_of_report(RothagaClient *c,char *reported)
 {
+	char *tmp = NULL;
+	tmp = malloc(CLI_BUFR);
+
+	if (tmp == NULL)
+	{
+		perror("malloc:() ");
+		exit(-1);
+	}
+	
+	snprintf(tmp,CLI_BUFR-1,"CR%",reported)
+
+	write_to_server(c,tmp);
+
 	return 0;
 }
 
