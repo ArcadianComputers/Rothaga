@@ -9,8 +9,12 @@
 #include "netio.h"
 #include "encio.h"
 #include "agathor.h"
+
+#ifdef OSX
 #include "mach_gettime.h"
 #include <mach/mach_time.h>
+#endif
+
 /* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
 
 #define WIN_CFG "C:\\Users\\Admin\\workspace\\Rothaga\\Rothaga.ini"
@@ -253,6 +257,8 @@ int parse_console_command(RothagaClient *c)
 	return 0;
 }
 
+#ifdef OSX
+
 int clock_gettime(clockid_t clk_id, struct timespec *tp)
 {
     kern_return_t retval = KERN_SUCCESS;
@@ -283,6 +289,7 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp)
 
     return retval;
 }
+#endif
 
 int ping_server(RothagaClient *c, char *cliname)
 {
