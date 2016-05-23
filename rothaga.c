@@ -9,7 +9,6 @@
 #include "netio.h"
 #include "encio.h"
 #include "agathor.h"
-
 #ifdef OSX
 #include "mach_gettime.h"
 #include <mach/mach_time.h>
@@ -181,6 +180,7 @@ int parse_console_command(RothagaClient *c)
 {
 	int l = 0;
 	char *tmp = NULL;
+	char *tmprp = NULL;
 
 	tmp = malloc(CLI_BUFR);
 
@@ -214,9 +214,10 @@ int parse_console_command(RothagaClient *c)
 
 	else if (strncmp(tmp,"/rp",3) == 0)
 	{	
-		tmp+=4;
 		
-		printf("If you are sure you want to report <%s>, please type /yes, if not please /no\n\n",tmp);
+		tmprp = tmp+4;
+
+		printf("If you are sure you want to report <%s>, please type /yes, if not please /no\n\n",tmprp);
 		
 		c->argyon = malloc(NAME_LEN);
 
@@ -227,7 +228,8 @@ int parse_console_command(RothagaClient *c)
 			return -1;
 		}
 
-		snprintf(c->argyon,NAME_LEN-1,"%s",tmp);
+		memset(c->argyon,0,NAME_LEN);
+		snprintf(c->argyon,NAME_LEN-1,"%s",tmprp);
 		
 		c->f = (void *)report_user;
 	}
