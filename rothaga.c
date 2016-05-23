@@ -60,6 +60,15 @@ int main (int argc, char **argv)
 	memset(rc.cliname, 0, NAME_LEN);
 	strncpy(rc.cliname, argv[1], NAME_LEN-1);
 
+	rc.argyon = malloc(NAME_LEN);
+
+	if(rc.argyon == NULL)
+	{
+		perror("malloc()");
+		printf("Lacking required RAM\n");
+		return -1;
+	}
+
 	printf("Client chose name: %s\n", rc.cliname);
 	/* printf("plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
 		
@@ -214,19 +223,9 @@ int parse_console_command(RothagaClient *c)
 
 	else if (strncmp(tmp,"/rp",3) == 0)
 	{	
-		
 		tmprp = tmp+4;
 
 		printf("If you are sure you want to report <%s>, please type '/yes, if not please /no\n\n",tmprp);
-		
-		c->argyon = malloc(NAME_LEN);
-
-		if(c->argyon == NULL)
-		{
-			perror("malloc()");
-			printf("Lacking required RAM\n");
-			return -1;
-		}
 
 		memset(c->argyon,0,NAME_LEN);
 		snprintf(c->argyon,NAME_LEN-1,"%s",tmprp);
@@ -242,7 +241,6 @@ int parse_console_command(RothagaClient *c)
 	
 	else if (strncmp(tmp,"/no",3) == 0)
 	{
-
 		if (c->f == NULL) goto pcend;
 		
 		printf("Guess not then...\n\n");
@@ -255,7 +253,6 @@ int parse_console_command(RothagaClient *c)
 	{
 		send_message(c,tmp);
 	}
-
 
 	pcend:
 
@@ -375,7 +372,6 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 		return -1;
 	}
 
-
 	tmp = malloc(CLI_BUFR);
 
 	if (tmp == NULL)
@@ -384,7 +380,6 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 		exit(-1);
 	}
 		
-
 	memset(tmp,0,CLI_BUFR);
 
 	snprintf(tmp,CLI_BUFR-1,"CR%s",reported);
@@ -408,6 +403,8 @@ int report_user(RothagaClient *c, char *argyon)
 		exit(-1);
 	}
 	
+	memset(tmp,0,CLI_BUFR);
+
 	snprintf(tmp,CLI_BUFR-1,"RP%s",argyon);
 
 	write_to_server(c,tmp);
@@ -482,11 +479,15 @@ int parse_server_message(RothagaClient *c)
 
 	strncpy(tmp,c->b,l-2);	/* skip the \r\n combo */
 
+	char_cleaner(tmp);
+
 	printf("*** %s\n",tmp);
 
 	if (strncmp(tmp,"RP",2) == 0)
 	{
-		new_report(c,tmp+2);
+		memset(c->argyon,0,NAME_LEN);
+		strncpy(c->argyon,tmp+2,strlen(tmp+2));
+		new_report(c,c->argyon);
 	}
 
 	else if(strncmp(tmp,"PG",2) == 0)
@@ -497,7 +498,23 @@ int parse_server_message(RothagaClient *c)
 	memset(c->b,0,CLI_BUFR);
 	c->nc = 0;
 
+	free(tmp);
+
 	return 0;
+}
+
+void char_cleaner(char *str)
+{
+	int i = 0;
+	int l = strlen(str);
+
+	for(i = 0; i < l; i++)
+	{
+		if (str[i] <= 31) str[i] = 32;	/* no control sequences */
+		else if (str[i] >= 127) str[i] = 32; /* no upper ascii */
+	}
+
+	return;
 }
 
 int new_report(RothagaClient *c,char *reported)

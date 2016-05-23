@@ -90,5 +90,6 @@ int confirm_report(RothagaClient *,RothagaClient *);		/* confirms the reporting 
 RothagaClient *lookup_client_by_name(RothagaClient *rc,char *);	/* find a client structure by name */
 int confirmation_of_report(RothagaClient *,char *);		/* send a yes answer in response to a report request */
 int cisin(char);						/* check for allowed characters */
+void char_cleaner(char *str);					/* get rid of control characters */
 
 #endif /* NETIO_H_ */
