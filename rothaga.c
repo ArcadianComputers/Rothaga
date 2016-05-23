@@ -365,6 +365,14 @@ int set_name(RothagaClient *c, char *cliname)
 int confirmation_of_report(RothagaClient *c,char *reported)
 {
 	char *tmp = NULL;
+
+	if (reported == NULL)
+	{
+		printf("confrimation_of_report() called with null 'reported' variable");
+		return -1;
+	}
+
+
 	tmp = malloc(CLI_BUFR);
 
 	if (tmp == NULL)
@@ -372,10 +380,15 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 		perror("malloc:() ");
 		exit(-1);
 	}
-	
+		
+
+	memset(tmp,0,CLI_BUFR);
+
 	snprintf(tmp,CLI_BUFR-1,"CR%s",reported);
 
 	write_to_server(c,tmp);
+	
+	free(tmp);
 
 	return 0;
 }
