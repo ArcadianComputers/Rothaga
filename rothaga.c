@@ -464,7 +464,7 @@ int parse_server_message(RothagaClient *c)
 
 	if (strncmp(tmp,"RP",2) == 0)
 	{
-		confirm_report(c,tmp+2);
+		new_report(c,tmp+2);
 	}
 
 	else if(strncmp(tmp,"PG",2) == 0)
@@ -478,7 +478,7 @@ int parse_server_message(RothagaClient *c)
 	return 0;
 }
 
-int confirm_report(RothagaClient *c,char *reported)
+int new_report(RothagaClient *c,char *reported)
 {
 	printf("User %s has been reported, type /yes to agree or /no to disagree.\n",reported);
 	c->f = (void *)confirmation_of_report;

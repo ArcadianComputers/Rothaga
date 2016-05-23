@@ -40,22 +40,22 @@ int main(int argc, char **argv)
 
 		c->s = -2;			/* mark this client slot as free */
 
-		c->b = malloc(CLI_BUFR);
-		memset(c->b,0,CLI_BUFR);
+		c->b = malloc(CLI_BUFR);	/* pre-allocate all client buffers */
+		memset(c->b,0,CLI_BUFR);	/* and clear them out */
 
-		c->cliname = malloc(NAME_LEN);
-		memset(c->cliname,0,NAME_LEN);
+		c->cliname = malloc(NAME_LEN);	/* pre-allocate client name space */
+		memset(c->cliname,0,NAME_LEN);	/* and clear it out */
 
 		if (c->b == NULL || c->cliname == NULL)
 		{
-			perror("malloc(): ");
+			perror("malloc(): ");	/* if either is NULL, we don't have the RAM */
 			exit(-1);
 		}
 	}	
 
 	s = &rs[0];				/* pointer to our server */
 
-	s->sp = socket(AF_INET,SOCK_STREAM,0);
+	s->sp = socket(AF_INET,SOCK_STREAM,0);	/* make an internet socket */
 
 	if (s->sp == -1)
 	{
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	s->sin.sin_port = htons(SRV_PORT); 	/* tcp port to listen on */
 	s->sin.sin_addr.s_addr = INADDR_ANY; 	/* listen on all interfaces */
 
-	re = bind(s->sp, (struct sockaddr *) &s->sin,sizeof(s->sin));
+	re = bind(s->sp, (struct sockaddr *) &s->sin,sizeof(s->sin));	/* actual port allocation */
 		
 	if (re == -1)
 	{
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	re = listen(s->sp,5);			/* hard-wired back log */
+	re = listen(s->sp,5);			/* hard-wired back log, and listen on our server port */
 
 	if (re == -1)
 	{
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
 	while(1)
 	{
-		ta = accept(s->sp,NULL,NULL);
+		ta = accept(s->sp,NULL,NULL);	/* accept connections into a temp socket */
 		
 		if (ta == -1)
 		{
@@ -235,13 +235,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
 	else if (strncmp(cmd,"PN",2)==0) send_pong(rc,c);
 	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
-	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c)	
-	
-	
-	
-	
-	
-	
+	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
 
 	pcend:
 
@@ -321,7 +315,6 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 
 	cm = malloc(CLI_BUFR);
 	memset(cm,0,CLI_BUFR);
-	
 
 	if (strlen(c->cliname) == 0)
 	{
@@ -348,7 +341,6 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 			write_client(rc,&rc[i],cm);
 		}  	
 	}
-
 	
 	free(cm);
 	free(tmp);
@@ -381,7 +373,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 
 	else 
 	{
-		if (l > (NAME_LEN-2))	/* name too long */
+		if (l > (NAME_LEN+2))	/* name too long */
 		{
 			write_client(rc,c,"9NName too long.");
 			free(tmp);
@@ -390,7 +382,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 
 		memset(tmp,0,NAME_LEN);
 
-		strncpy(tmp, cptr, l-2);		
+		strncpy(tmp,cptr,l-2);		
 	}
 
 	cm = malloc(CLI_BUFR);
@@ -401,6 +393,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 
 		printf("Out of RAM! Cannot send report to users\n");
 		write_client(rc,c,"0MCannot process request.");
+		free(tmp);
 		return -1;
 	}
 
@@ -416,18 +409,73 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		}  	
 	}
 	
+	free(tmp);
+	free(cm);
+
 	return 0;
 }
 
 int confirm_report(RothagaClient *rc, RothagaClient *c)
 {
-	int i = 0;              /* incrementation counter */
         int l = 0;              /* length counter */
-        char *cm = NULL;
-        char *tmp = NULL;
-        char *cptr = NULL;
+        char *tmp = NULL;	/* tmp pointer */
+	char *rp = NULL;	/* name of reportee */
+	RothagaClient *r;	/* client structure of reportee */
+
+	tmp = c->b+2;
+
+	rp = malloc(NAME_LEN);
+
+	if (rp == NULL)
+	{
+		perror("malloc(): ");
+		return -1;
+	}	
+
+	memset(rp,0,NAME_LEN);
+
+	l = strlen(tmp);
+
+	if (l > (NAME_LEN+2))
+	{
+		write_client(rc,c,"9NName too long.");
+		free(rp);
+		return -1;
+	}
+
+	strncpy(rp,tmp,l-2);
 	
-	lookup_client_by_name(
+	r = lookup_client_by_name(rc,rp);
+
+	if (r == NULL)
+	{
+		write_client(rc,c,"0UNo Such User.");
+		free(rp);
+		return -1;
+	}
+
+	r->tr++;
+	r->karma-=(KARMA_LOSS_REPORT*r->tr);	/* The more times you are confirmed, the greater the karma loss */
+
+	free(rp);
+
+	return 0;
+}
+
+RothagaClient *lookup_client_by_name(RothagaClient *rc, char *cliname)
+{
+	int i = 0;
+
+	int l = strlen(cliname);
+
+	printf("Looking up: %s\n",cliname);
+
+	for (i = 0; i < MAX_CLIS; i++)
+	{
+		if (strncmp(rc[i].cliname,cliname,l) == 0) return &rc[i];
+	}
+
+	return NULL;
 }
 
 int parse_client_message(RothagaClient *rc, RothagaClient *c)
@@ -502,7 +550,7 @@ int kill_client(RothagaClient *rc, RothagaClient *c, char *reason)
 
 	for(i=0; i<MAX_CLIS; i++)
 	{
-		write_client(rc,rc[i].s,reason);
+		write_client(rc,c,reason);
 	}
 
 	close(c->s);			/* close the socket */
