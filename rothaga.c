@@ -242,6 +242,9 @@ int parse_console_command(RothagaClient *c)
 	
 	else if (strncmp(tmp,"/no",3) == 0)
 	{
+
+		if (c->f == NULL) goto pcend;
+		
 		printf("Guess not then...\n\n");
 
 		if (c->argyon != NULL) free(c->argyon);
