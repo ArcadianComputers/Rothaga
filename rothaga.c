@@ -367,7 +367,7 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 		exit(-1);
 	}
 	
-	snprintf(tmp,CLI_BUFR-1,"CR%",reported)
+	snprintf(tmp,CLI_BUFR-1,"CR%s",reported);
 
 	write_to_server(c,tmp);
 
