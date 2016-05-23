@@ -217,7 +217,7 @@ int parse_console_command(RothagaClient *c)
 		
 		tmprp = tmp+4;
 
-		printf("If you are sure you want to report <%s>, please type /yes, if not please /no\n\n",tmprp);
+		printf("If you are sure you want to report <%s>, please type '/yes, if not please /no\n\n",tmprp);
 		
 		c->argyon = malloc(NAME_LEN);
 
@@ -236,6 +236,7 @@ int parse_console_command(RothagaClient *c)
 
 	else if (strncmp(tmp,"/yes",4) == 0)
 	{
+		if (c->f == NULL) goto pcend;
 		c->f(c,c->argyon);
 	}
 	
@@ -251,6 +252,9 @@ int parse_console_command(RothagaClient *c)
 	{
 		send_message(c,tmp);
 	}
+
+
+	pcend:
 
 	memset(c->k,0,CLI_BUFR);
 	c->nk = 0;
