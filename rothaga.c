@@ -46,7 +46,6 @@ int main (int argc, char **argv)
 	
 	rc.cliname = ralloc(NAME_LEN);
 	
-	memset(rc.cliname, 0, NAME_LEN);
 	strncpy(rc.cliname, argv[1], NAME_LEN-1);
 
 	rc.argyon = ralloc(NAME_LEN);
@@ -75,9 +74,6 @@ int main (int argc, char **argv)
 
 	rc.b = ralloc(CLI_BUFR);
 	rc.k = ralloc(CLI_BUFR);
-
-	memset(rc.b,0,CLI_BUFR);
-	memset(rc.k,0,CLI_BUFR);
 
 	x[0] = 0;
 	y[0] = 0;
@@ -171,8 +167,6 @@ int parse_console_command(RothagaClient *c)
 
 	l = strlen(c->k);
 
-	memset(tmp,0,CLI_BUFR);
-
 	strncpy(tmp,c->k,l-1);		/* skip the trailing new line */
 
 	if (strncmp(tmp,"/quit",5) == 0)
@@ -250,7 +244,6 @@ int ping_server(RothagaClient *c, char *cliname)
 
 		tmp = ralloc(NAME_LEN);
 
-		memset(tmp,0,NAME_LEN);
 		snprintf(tmp,NAME_LEN-1,"PN%s",cliname);
 		write_to_server(c,tmp);	
 	}
@@ -297,8 +290,6 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 	}
 
 	tmp = ralloc(CLI_BUFR);
-		
-	memset(tmp,0,CLI_BUFR);
 
 	snprintf(tmp,CLI_BUFR-1,"CR%s",reported);
 
@@ -314,8 +305,6 @@ int report_user(RothagaClient *c, char *argyon)
 	char *tmp = NULL;
 
 	tmp = ralloc(CLI_BUFR);
-	
-	memset(tmp,0,CLI_BUFR);
 
 	snprintf(tmp,CLI_BUFR-1,"RP%s",argyon);
 
@@ -374,8 +363,6 @@ int parse_server_message(RothagaClient *c)
 	tmp = ralloc(CLI_BUFR);
 
 	l = strlen(c->b);
-
-	memset(tmp,0,CLI_BUFR);
 
 	strncpy(tmp,c->b,l-2);	/* skip the \r\n combo */
 
@@ -454,7 +441,6 @@ char *encrp(char *plaintext)
 		return NULL;
 	}
 
-	memset(encptd,0,len*2);
 	memset(entropy,0,256);
 
 	fd = open(ENT_SRC,O_RDONLY);

@@ -4,6 +4,7 @@ server.exe
 rothaga.exe
 *.exe
 *.exe
+<<<<<<< HEAD
 cursetest
 cursetest2.c
 ncurses.c
@@ -12,3 +13,16 @@ server.exe
 cursetest2
 server
 server
+=======
+rothaga
+
+rothaga
+
+rothaga
+
+Rothaga.dSYM/Contents/Info.plist
+
+server.dSYM/Contents/Info.plist
+
+server.dSYM/Contents/Resources/DWARF/server
+>>>>>>> 93fd6d5923e18702d87128d12c2d1b4798389df0
