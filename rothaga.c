@@ -9,18 +9,12 @@
 #include "netio.h"
 #include "encio.h"
 #include "agathor.h"
-#ifdef OSX
-#include "mach_gettime.h"
-#include <mach/mach_time.h>
-#endif
+#include "OSXTIME.h"
 
 /* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
 
 #define WIN_CFG "C:\\Users\\Admin\\workspace\\Rothaga\\Rothaga.ini"
 #define LNX_CFG "./rothaga.ini"
-
-#define MT_NANO (+1.0E-9)
-#define MT_GIGA UINT64_C(1000000000)
 
 #define ENT_SRC "/dev/random"
 
@@ -262,40 +256,6 @@ int parse_console_command(RothagaClient *c)
 
 	return 0;
 }
-
-#ifdef OSX
-
-int clock_gettime(clockid_t clk_id, struct timespec *tp)
-{
-    kern_return_t retval = KERN_SUCCESS;
-    if( clk_id == TIMER_ABSTIME) {
-        if (!mt_timestart) { // only one timer, initilized on the first call to the TIMER
-            mach_timebase_info_data_t tb = { 0 };
-            mach_timebase_info(&tb);
-            mt_timebase = tb.numer;
-            mt_timebase /= tb.denom;
-            mt_timestart = mach_absolute_time();
-        }
-
-        double diff = (mach_absolute_time() - mt_timestart) * mt_timebase;
-        tp->tv_sec = diff * MT_NANO;
-        tp->tv_nsec = diff - (tp->tv_sec * MT_GIGA);
-    }
-    else { // other clk_ids are mapped to the coresponding mach clock_service
-        clock_serv_t cclock;
-        mach_timespec_t mts;
-
-        host_get_clock_service(mach_host_self(), clk_id, &cclock);
-        retval = clock_get_time(cclock, &mts);
-        mach_port_deallocate(mach_task_self(), cclock);
-
-        tp->tv_sec = mts.tv_sec;
-        tp->tv_nsec = mts.tv_nsec;
-    }
-
-    return retval;
-}
-#endif
 
 int ping_server(RothagaClient *c, char *cliname)
 {

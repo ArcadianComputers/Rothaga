@@ -3,6 +3,7 @@
 #include "netio.h"
 #include "fileio.h"
 #include "encio.h"
+#include "OSXTIME.h"
 
 RothagaClient *gprc;				/* global SIGPIPE Array pointer */
 RothagaClient *gpc;				/* global SIGPIPE Client pointer */
