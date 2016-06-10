@@ -10,6 +10,7 @@
 #include "encio.h"
 #include "agathor.h"
 #include "OSXTIME.h"
+#include "ralloc.h"
 
 /* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
 
@@ -43,25 +44,12 @@ int main (int argc, char **argv)
 
 	memset(&rc,0,sizeof(rc));				/* clear out the client structure */
 	
-	rc.cliname = malloc(NAME_LEN);
-		
-	if (rc.cliname == NULL)
-	{
-		perror("malloc(): ");
-		exit(-1);
-	}
+	rc.cliname = ralloc(NAME_LEN);
 	
 	memset(rc.cliname, 0, NAME_LEN);
 	strncpy(rc.cliname, argv[1], NAME_LEN-1);
 
-	rc.argyon = malloc(NAME_LEN);
-
-	if(rc.argyon == NULL)
-	{
-		perror("malloc()");
-		printf("Lacking required RAM\n");
-		return -1;
-	}
+	rc.argyon = ralloc(NAME_LEN);
 
 	printf("Client chose name: %s\n", rc.cliname);
 	/* printf("plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
@@ -85,14 +73,8 @@ int main (int argc, char **argv)
 
 	printf("Connected to %s:%s\n",argv[2],argv[3]);
 
-	rc.b = malloc(CLI_BUFR);
-	rc.k = malloc(CLI_BUFR);
-
-	if (rc.b == NULL || rc.k == NULL)
-	{
-		perror("malloc(): ");
-		exit(-1);
-	}
+	rc.b = ralloc(CLI_BUFR);
+	rc.k = ralloc(CLI_BUFR);
 
 	memset(rc.b,0,CLI_BUFR);
 	memset(rc.k,0,CLI_BUFR);
@@ -185,13 +167,7 @@ int parse_console_command(RothagaClient *c)
 	char *tmp = NULL;
 	char *tmprp = NULL;
 
-	tmp = malloc(CLI_BUFR);
-
-	if (tmp == NULL)
-	{
-		perror("malloc(): ");
-		exit(-1);	
-	}
+	tmp = ralloc(CLI_BUFR);
 
 	l = strlen(c->k);
 
@@ -272,13 +248,7 @@ int ping_server(RothagaClient *c, char *cliname)
 	{
 		printf("Sending ping to: %s\n", cliname);
 
-		tmp = malloc(NAME_LEN);
-
-		if(tmp == NULL)
-		{		
-			perror("malloc() failed due to lack of memory.");
-			return -1;
-		}
+		tmp = ralloc(NAME_LEN);
 
 		memset(tmp,0,NAME_LEN);
 		snprintf(tmp,NAME_LEN-1,"PN%s",cliname);
@@ -301,13 +271,7 @@ int set_name(RothagaClient *c, char *cliname)
 {
 	char *tmp = NULL;
 
-	tmp = malloc(CLI_BUFR);
-
-	if (tmp == NULL)
-	{
-		perror("malloc(): ");
-		exit(-1);
-	}
+	tmp = ralloc(CLI_BUFR);
 
 	snprintf(tmp,CLI_BUFR-1,"SN%s",cliname);
 
@@ -332,13 +296,7 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 		return -1;
 	}
 
-	tmp = malloc(CLI_BUFR);
-
-	if (tmp == NULL)
-	{
-		perror("malloc:() ");
-		exit(-1);
-	}
+	tmp = ralloc(CLI_BUFR);
 		
 	memset(tmp,0,CLI_BUFR);
 
@@ -355,13 +313,7 @@ int report_user(RothagaClient *c, char *argyon)
 {
 	char *tmp = NULL;
 
-	tmp = malloc(CLI_BUFR);
-
-	if (tmp == NULL)
-	{
-		perror("malloc(): ");
-		exit(-1);
-	}
+	tmp = ralloc(CLI_BUFR);
 	
 	memset(tmp,0,CLI_BUFR);
 
@@ -378,13 +330,7 @@ int send_message(RothagaClient *c, char *msg)
 {
 	char *tmp = NULL;
 
-	tmp = malloc(CLI_BUFR);
-
-	if (tmp == NULL)
-	{
-		perror("malloc(): ");
-		exit(-1);
-	}
+	tmp = ralloc(CLI_BUFR);
 
 	snprintf(tmp,CLI_BUFR-1,"SM%s",msg);
 
@@ -425,13 +371,7 @@ int parse_server_message(RothagaClient *c)
 	int l = 0;
 	char *tmp = NULL;
 
-	tmp = malloc(CLI_BUFR);
-
-	if (tmp == NULL)
-	{
-		perror("malloc(): ");
-		exit(-1);
-	}
+	tmp = ralloc(CLI_BUFR);
 
 	l = strlen(c->b);
 
@@ -507,7 +447,7 @@ char *encrp(char *plaintext)
 		return NULL;
 	}
 
-	encptd = malloc(len*2);
+	encptd = ralloc(len*2);
 	
 	if (encptd == NULL)
 	{
