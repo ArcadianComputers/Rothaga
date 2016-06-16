@@ -220,7 +220,7 @@ int parse_console_command(RothagaClient *c)
 
 	else if (strncmp(tmp,"/kg",3) == 0)
 	{
-		send_karma(c,tmp+3);
+		send_karma(c,tmp+4);
 	}
 
 	else

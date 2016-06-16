@@ -269,7 +269,7 @@ int karma_gift(RothagaClient *rc, RothagaClient *c)
 	if (l > (NAME_LEN+2))
 	{
 		write_client(rc,c,"9NName too long.");
-		free(rp);
+		free(kg);
 		return -1;
 	}
 
@@ -280,7 +280,7 @@ int karma_gift(RothagaClient *rc, RothagaClient *c)
 	if (r == NULL)
 	{
 		write_client(rc,c,"0UNo Such User.");
-		free(rp);
+		free(kg);
 		return -1;
 	}
 
