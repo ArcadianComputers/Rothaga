@@ -213,6 +213,11 @@ int parse_console_command(RothagaClient *c)
 		c->f = (void *)NULL;	/* don't leave the gun loaded */
 	}
 
+	else if (strncmp(tmp,"/kg",3) == 0)
+	{
+		send_karma(c,tmp+3);
+	}
+
 	else
 	{
 		send_message(c,tmp);
@@ -222,6 +227,21 @@ int parse_console_command(RothagaClient *c)
 
 	memset(c->k,0,CLI_BUFR);
 	c->nk = 0;
+	free(tmp);
+
+	return 0;
+}
+
+int send_karma(RothagaClient *c, char *cliname)
+{
+	char *tmp = NULL;
+
+	tmp = ralloc(CLI_BUFR);
+
+	snprintf(tmp,CLI_BUFR-1,"KG%s",cliname);
+
+	write_to_server(c,tmp);
+
 	free(tmp);
 
 	return 0;

@@ -236,12 +236,55 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	else if (strncmp(cmd,"PN",2)==0) send_pong(rc,c);
 	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
 	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
+	else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c);	
 
 	pcend:
 
 	memset(c->b,0,CLI_BUFR);
 
 	c->nc = 0;
+
+	return 0;
+}
+
+int karma_gift(RothagaClient *rc, RothagaClient *c)
+{
+        int l = 0;              /* length counter */
+        char *tmp = NULL;	/* tmp pointer */
+	char *kg = NULL;	/* karma giftee */
+	RothagaClient *r;	/* client structure of reportee */
+
+	tmp = c->b+2;
+
+	kg = ralloc(NAME_LEN);
+
+	if (kg == NULL)
+	{
+		perror("malloc(): ");
+		return -1;
+	}	
+
+	l = strlen(tmp);
+
+	if (l > (NAME_LEN+2))
+	{
+		write_client(rc,c,"9NName too long.");
+		free(rp);
+		return -1;
+	}
+
+	strncpy(kg,tmp,l-2);
+
+	r = lookup_client_by_name(rc,kg);
+
+	if (r == NULL)
+	{
+		write_client(rc,c,"0UNo Such User.");
+		free(rp);
+		return -1;
+	}
+
+	r->karma += 1000;
 
 	return 0;
 }
