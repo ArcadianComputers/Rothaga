@@ -199,7 +199,7 @@ int parse_console_command(RothagaClient *c)
 	
 	else if (strncmp(tmp,"/comlist",8) == 0)
 	{
-		printf("The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
+		printf("The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/kg <user>' will gift some of your karma to <user> \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
 	}
 
 	else if (strncmp(tmp,"/yes",4) == 0)
