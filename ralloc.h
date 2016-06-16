@@ -1,4 +1,4 @@
-#define CLI_BUFR 1024                           /* size of client buffer */
+void *ralloc(int);
 
 void *ralloc(int s)
 {
@@ -12,7 +12,7 @@ void *ralloc(int s)
 		return NULL;
         }
 	
-	memset(ret,0,CLI_BUFR);
+	memset(ret,0,s);
 
 	return ret;
 }
