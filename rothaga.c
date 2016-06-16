@@ -334,7 +334,7 @@ int write_to_server(RothagaClient *c, char *cmd)
 {
 	int re = -1;
 
-	printf("SENDING: %s\n",cmd);
+	/* printf("SENDING: %s\n",cmd); */
 
 	re = write(c->s,cmd,strlen(cmd));
 
