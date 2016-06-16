@@ -29,7 +29,7 @@ int main (int argc, char **argv)
 
 	printf("%s\n",agathor);
 
-	printf("Welcome to %s version 0.4 alpha\n",argv[0]);
+	printf("Welcome to %s version 0.4 alpha\n To view a list of commands type '/comlist'\n",argv[0]);
 
 	/* load_config(CONFIG_FILE) */
 	/* find_clients() */
@@ -195,6 +195,11 @@ int parse_console_command(RothagaClient *c)
 		snprintf(c->argyon,NAME_LEN-1,"%s",tmprp);
 		
 		c->f = (void *)report_user;
+	}
+	
+	else if (strncmp(tmp,"/comlist",8) == 0)
+	{
+		printf("The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
 	}
 
 	else if (strncmp(tmp,"/yes",4) == 0)
