@@ -9,7 +9,7 @@ void *ralloc(int s)
         if (ret == NULL)
         {
                 perror("malloc(): ");
-                exit(-1);
+		return NULL;
         }
 	
 	memset(ret,0,CLI_BUFR);

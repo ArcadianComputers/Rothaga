@@ -4,6 +4,7 @@
 #include "fileio.h"
 #include "encio.h"
 #include "OSXTIME.h"
+#include "ralloc.h"
 
 RothagaClient *gprc;				/* global SIGPIPE Array pointer */
 RothagaClient *gpc;				/* global SIGPIPE Client pointer */
@@ -41,11 +42,9 @@ int main(int argc, char **argv)
 
 		c->s = -2;			/* mark this client slot as free */
 
-		c->b = malloc(CLI_BUFR);	/* pre-allocate all client buffers */
-		memset(c->b,0,CLI_BUFR);	/* and clear them out */
+		c->b = ralloc(CLI_BUFR);	/* pre-allocate all client buffers */
 
-		c->cliname = malloc(NAME_LEN);	/* pre-allocate client name space */
-		memset(c->cliname,0,NAME_LEN);	/* and clear it out */
+		c->cliname = ralloc(NAME_LEN);	/* pre-allocate client name space */
 
 		if (c->b == NULL || c->cliname == NULL)
 		{
@@ -259,7 +258,7 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 	cptr += 2;		/* increment depth into c->b */
 	l = strlen(cptr);	/* take length of client name */
 
-	tmp = malloc(NAME_LEN);
+	tmp = ralloc(NAME_LEN);
 	
 	if (tmp == NULL)
 	{
@@ -314,14 +313,12 @@ int set_client_name(RothagaClient *rc, RothagaClient *c)
 		strncpy(tmp, cptr, NAME_LEN);		
 	}
 
-	cm = malloc(CLI_BUFR);
-	memset(cm,0,CLI_BUFR);
+	cm = ralloc(CLI_BUFR);
 
 	if (strlen(c->cliname) == 0)
 	{
 		snprintf(cm,CLI_BUFR-1,"NN<%i> is now %s",c->c,tmp);
-		c->cliname = malloc(NAME_LEN);
-		memset(c->cliname,0,NAME_LEN);
+		c->cliname = ralloc(NAME_LEN);
 		strncpy(c->cliname,tmp,l-2);
 		c->karma=KARMA_BASE;
 		clock_gettime(CLOCK_MONOTONIC, &c->fstmes);
@@ -361,7 +358,7 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 	cptr += 2;		/* increment depth into c->b */
 	l = strlen(cptr);	/* take length of reported client name */
 
-	tmp = malloc(NAME_LEN);
+	tmp = ralloc(NAME_LEN);
 
 	if (tmp == NULL)
 	{
@@ -381,12 +378,11 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 			return -1;
 		}
 
-		memset(tmp,0,NAME_LEN);
 
 		strncpy(tmp,cptr,l-2);		
 	}
 
-	cm = malloc(CLI_BUFR);
+	cm = ralloc(CLI_BUFR);
 	
 	if (cm == NULL)
 	{
@@ -397,8 +393,6 @@ int send_report(RothagaClient *rc, RothagaClient *c)
 		free(tmp);
 		return -1;
 	}
-
-	memset(cm,0,CLI_BUFR);
 
 	snprintf(cm,CLI_BUFR-1,"RP%s",tmp);
 
@@ -425,15 +419,13 @@ int confirm_report(RothagaClient *rc, RothagaClient *c)
 
 	tmp = c->b+2;
 
-	rp = malloc(NAME_LEN);
+	rp = ralloc(NAME_LEN);
 
 	if (rp == NULL)
 	{
 		perror("malloc(): ");
 		return -1;
 	}	
-
-	memset(rp,0,NAME_LEN);
 
 	l = strlen(tmp);
 
@@ -498,9 +490,7 @@ int parse_client_message(RothagaClient *rc, RothagaClient *c)
 	cptr = c->b;
 	cptr += 2;
 
-	cm = malloc(CLI_BUFR);
-
-	memset(cm,0,CLI_BUFR);
+	cm = ralloc(CLI_BUFR);
 
 	snprintf(cm,CLI_BUFR-1,"<%s(%i)> %s",c->cliname,c->karma,cptr); 
 
