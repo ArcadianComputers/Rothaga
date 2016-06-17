@@ -11,6 +11,7 @@
 #include "agathor.h"
 #include "OSXTIME.h"
 #include "ralloc.h"
+#include "gettok.h"
 
 /* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
 
@@ -202,6 +203,11 @@ int parse_console_command(RothagaClient *c)
 		printf("The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/kg <user>' will gift some of your karma to <user> \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
 	}
 
+	else if (strncmp(tmp,"/kg",3) == 0)
+	{
+		send_karma(c,tmp+4);
+	}
+
 	else if (strncmp(tmp,"/yes",4) == 0)
 	{
 		if (c->f == NULL) goto pcend;
@@ -218,11 +224,6 @@ int parse_console_command(RothagaClient *c)
 		c->f = (void *)NULL;	/* don't leave the gun loaded */
 	}
 
-	else if (strncmp(tmp,"/kg",3) == 0)
-	{
-		send_karma(c,tmp+4);
-	}
-
 	else
 	{
 		send_message(c,tmp);
@@ -237,13 +238,20 @@ int parse_console_command(RothagaClient *c)
 	return 0;
 }
 
-int send_karma(RothagaClient *c, char *cliname)
+int send_karma(RothagaClient *c, char *details)
 {
 	char *tmp = NULL;
+	char *cliname = NULL;	
+	int karma_amount = 0;
 
 	tmp = ralloc(CLI_BUFR);
+	cliname = ralloc(NAME_LEN);
 
-	snprintf(tmp,CLI_BUFR-1,"KG%s",cliname);
+	strncpy(cliname,gettok(details,' ',1),NAME_LEN-1);
+
+	karma_amount = atoi(gettok(details,' ',2));
+
+	snprintf(tmp,CLI_BUFR-1,"KG%s %i",cliname,karma_amount);
 
 	write_to_server(c,tmp);
 
@@ -251,6 +259,8 @@ int send_karma(RothagaClient *c, char *cliname)
 
 	return 0;
 }
+
+
 
 int ping_server(RothagaClient *c, char *cliname)
 {

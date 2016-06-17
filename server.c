@@ -236,7 +236,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	else if (strncmp(cmd,"PN",2)==0) send_pong(rc,c);
 	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
 	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
-	else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c);	
+	else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c,cmd+2);	
 
 	pcend:
 
@@ -247,7 +247,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	return 0;
 }
 
-int karma_gift(RothagaClient *rc, RothagaClient *c)
+int karma_gift(RothagaClient *rc, RothagaClient *c,details)
 {
         int l = 0;              /* length counter */
         char *tmp = NULL;	/* tmp pointer */
