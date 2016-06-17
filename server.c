@@ -5,6 +5,7 @@
 #include "encio.h"
 #include "OSXTIME.h"
 #include "ralloc.h"
+#include "gettok.h"
 
 RothagaClient *gprc;				/* global SIGPIPE Array pointer */
 RothagaClient *gpc;				/* global SIGPIPE Client pointer */
@@ -236,7 +237,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	else if (strncmp(cmd,"PN",2)==0) send_pong(rc,c);
 	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
 	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
-	else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c,cmd+2);	
+	else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c);	
 
 	pcend:
 
@@ -247,12 +248,13 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	return 0;
 }
 
-int karma_gift(RothagaClient *rc, RothagaClient *c,details)
+int karma_gift(RothagaClient *rc, RothagaClient *c)
 {
         int l = 0;              /* length counter */
         char *tmp = NULL;	/* tmp pointer */
 	char *kg = NULL;	/* karma giftee */
 	RothagaClient *r;	/* client structure of reportee */
+	int kma = 0;		/* karma given/taken */
 
 	tmp = c->b+2;
 
@@ -264,12 +266,24 @@ int karma_gift(RothagaClient *rc, RothagaClient *c,details)
 		return -1;
 	}	
 
-	l = strlen(tmp);
+	strncpy(kg,gettok(tmp,' ',1),NAME_LEN-1);
+
+	l = strlen(kg);
 
 	if (l > (NAME_LEN+2))
 	{
 		write_client(rc,c,"9NName too long.");
 		free(kg);
+		return -1;
+	}
+
+	kma = atoi(gettok(tmp,' ',2));
+
+	if (kma > c->karma)
+	{
+		write_client(rc,c,"0KNot enough karma!!!");
+		printf("Client %s attempted to gift too much karma.",c->cliname);
+		
 		return -1;
 	}
 
@@ -284,7 +298,9 @@ int karma_gift(RothagaClient *rc, RothagaClient *c,details)
 		return -1;
 	}
 
-	r->karma += 1000;
+	c->karma -= kma;
+
+	r->karma += kma;
 
 	return 0;
 }
