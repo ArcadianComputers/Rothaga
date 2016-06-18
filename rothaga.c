@@ -169,7 +169,7 @@ int parse_console_command(RothagaClient *c)
 	l = strlen(c->k);
 
 	strncpy(tmp,c->k,l-1);		/* skip the trailing new line */
-
+	
 	if (strncmp(tmp,"/quit",5) == 0)
 	{
 		printf("\n\nAgathor, nooooooooo!\n\n");
@@ -247,10 +247,17 @@ int send_karma(RothagaClient *c, char *details)
 	tmp = ralloc(CLI_BUFR);
 	cliname = ralloc(NAME_LEN);
 
+	if (gettok(details,' ',1) == 0, gettok(details,' ',2) == 0)
+	{
+		printf("Command not valid.");
+	
+		return -1;
+	}
+
 	strncpy(cliname,gettok(details,' ',1),NAME_LEN-1);
 
 	karma_amount = atoi(gettok(details,' ',2));
-
+	
 	snprintf(tmp,CLI_BUFR-1,"KG%s %i",cliname,karma_amount);
 
 	write_to_server(c,tmp);
