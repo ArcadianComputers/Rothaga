@@ -12,6 +12,7 @@
 #include "OSXTIME.h"
 #include "ralloc.h"
 #include "gettok.h"
+#include "getmac.h"
 
 /* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
 
@@ -25,17 +26,19 @@ int main (int argc, char **argv)
 	int re = 0;						/* return code */
 	char 
 	x[1],y[1];						/* temp char holders for net/con io */
-	struct sockaddr_in sin;					/* network structure */
 	RothagaClient rc;					/* local client structure */
+	RothagaServer rs;					/* remote server structure */
+
+	x[0] = 0;
+	y[0] = 0;
 
 	printf("%s\n",agathor);
 
-	printf("Welcome to %s version 0.4 alpha\n To view a list of commands type '/comlist'\n",argv[0]);
+	printf("Welcome to %s version 0.9 alpha\n To view a list of commands type '/comlist'\n",argv[0]);
 
 	/* load_config(CONFIG_FILE) */
 	/* find_clients() */
 	/* show interface() */
-
 
 	if (argc < 4)
 	{
@@ -44,6 +47,7 @@ int main (int argc, char **argv)
 	}
 
 	memset(&rc,0,sizeof(rc));				/* clear out the client structure */
+	memset(&rs,0,sizeof(rs));				/* clear out the server structure */
 	
 	rc.cliname = ralloc(NAME_LEN);
 	
@@ -56,46 +60,14 @@ int main (int argc, char **argv)
 		
 	load_config(LNX_CFG);
 
-	sin.sin_family	    = AF_INET;
-	sin.sin_addr.s_addr = inet_addr(argv[2]);
-	sin.sin_port	    = htons(atoi(argv[3]));
+	rs.sin.sin_family	= AF_INET;
+	rs.sin.sin_addr.s_addr	= inet_addr(argv[2]);
+	rs.sin.sin_port		= htons(atoi(argv[3]));
 
-	rc.s = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
-
-	re = connect(rc.s,(struct sockaddr *) &sin,sizeof(sin));
-
-	if (re == -1)
-	{
-		perror("connect(): ");
-		printf("Failed to connect to %s on port %s\n",argv[2],argv[3]);
-		return -1;
-	}
-
-	printf("Connected to %s:%s\n",argv[2],argv[3]);
-
-	rc.b = ralloc(CLI_BUFR);
-	rc.k = ralloc(CLI_BUFR);
-
-	x[0] = 0;
-	y[0] = 0;
-
-	re = fcntl(rc.s,F_SETFL,O_NONBLOCK);
-
-	if (re == -1)
-	{
-		perror("fcntl(): ");
-		return -1;
-	}
-
-	re = fcntl(1,F_SETFL,O_NONBLOCK);
-
-	if (re == -1)
-	{
-		perror("fcntl(): ");
-		return -1;
-	}
+	net_connect(&rc,&rs);
 
 	set_name(&rc,argv[1]);	/* set our name as soon as we connect */
+	send_mac(&rc);
 
 	while(1)
 	{
@@ -154,6 +126,63 @@ int main (int argc, char **argv)
 	close(rc.s);
 	free(rc.b);
 	free(rc.k);
+
+	return 0;
+}
+
+int send_mac(RothagaClient *rc)
+{
+	return 0;
+}
+
+int net_connect(RothagaClient *rc, RothagaServer *rs)
+{
+	int re = 0;
+
+	rc->s = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+
+	if (rc->s == -1)
+	{
+		perror("socket(): ");
+		return -1;
+	}
+
+	getmac();
+
+	memcpy(&rc->mac_address,&mac_address,6);
+
+	printf("Client MAC Address: %02x:%02x:%02x:%02x:%02x:%02x\n",
+	rc->mac_address[0],rc->mac_address[1],rc->mac_address[2],rc->mac_address[3],rc->mac_address[4],rc->mac_address[5]);
+
+	re = connect(rc->s,(struct sockaddr *) &rs->sin,sizeof(rs->sin));
+
+	if (re == -1)
+	{
+		perror("connect(): ");
+		printf("Failed to connect to %s on port %i\n",inet_ntoa(rs->sin.sin_addr),rs->sin.sin_port);
+		return -1;
+	}
+
+	printf("Connected to %s:%i\n",inet_ntoa(rs->sin.sin_addr),rs->sin.sin_port);
+
+	rc->b = ralloc(CLI_BUFR);
+	rc->k = ralloc(CLI_BUFR);
+
+	re = fcntl(rc->s,F_SETFL,O_NONBLOCK);
+
+	if (re == -1)
+	{
+		perror("fcntl(): ");
+		return -1;
+	}
+
+	re = fcntl(1,F_SETFL,O_NONBLOCK);
+
+	if (re == -1)
+	{
+		perror("fcntl(): ");
+		return -1;
+	}
 
 	return 0;
 }
@@ -247,9 +276,9 @@ int send_karma(RothagaClient *c, char *details)
 	tmp = ralloc(CLI_BUFR);
 	cliname = ralloc(NAME_LEN);
 
-	if (gettok(details,' ',1) == 0, gettok(details,' ',2) == 0)
+	if ((gettok(details,' ',1) == NULL) || (gettok(details,' ',2) == NULL))
 	{
-		printf("Command not valid.");
+		printf("To gift karma: /kg <name> <amount> Example: /kg Jon 100\n");
 	
 		return -1;
 	}
@@ -266,8 +295,6 @@ int send_karma(RothagaClient *c, char *details)
 
 	return 0;
 }
-
-
 
 int ping_server(RothagaClient *c, char *cliname)
 {
