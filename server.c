@@ -659,14 +659,16 @@ RothagaClient *find_free_client(RothagaClient *rc)
 
 int kill_client(RothagaClient *rc, RothagaClient *c, char *reason)
 {
-	int i=0;
+	/* int i=0; */
 
 	printf("Killing client %i, socket #%i!\n",c->c,c->s);
 
-	for(i=0; i<MAX_CLIS; i++)
-	{
-		write_client(rc,&rc[i],reason);
-	}
+	/* for(i=0; i<MAX_CLIS; i++)		*/
+	/* {					*/
+	/* 	write_client(rc,&rc[i],reason);	*/
+	/* }					*/
+
+	write_client(rc,c,reason);
 
 	close(c->s);			/* close the socket */
 
