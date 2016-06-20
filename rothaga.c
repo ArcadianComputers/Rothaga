@@ -380,9 +380,9 @@ int set_name(RothagaClient *c, char *cliname)
 
 	write_to_server(c,tmp);				/* send the command */
 
-	memset(c->tmp,0,CLI_BUFR);			/* clear tmp buffer for re-use */
+	memset(tmp,0,CLI_BUFR);				/* clear tmp buffer for re-use */
 
-	strncpy(c->tmp,cliname,NAME_LEN-1);		/* save cliname to tmp buffer */
+	strncpy(tmp,cliname,NAME_LEN-1);		/* save cliname to tmp buffer */
 
 	memset(c->cliname,0,NAME_LEN);			/* clear old cliname */
 
