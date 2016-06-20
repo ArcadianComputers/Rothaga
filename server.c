@@ -259,7 +259,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 int set_mac(RothagaClient *rc, RothagaClient *c)
 {
 	int i = 0;
-
+	int maccheck = 0;
 	char *tmp = NULL;
 
 	tmp = c->b+2;		/* skip Sm */
@@ -271,10 +271,41 @@ int set_mac(RothagaClient *rc, RothagaClient *c)
 
 	printf("Client %i set mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",
 		c->c,c->mac_address[0],c->mac_address[1],c->mac_address[2],c->mac_address[3],c->mac_address[4],c->mac_address[5]);
-
-	c->sm = 1;
-
+	
+	maccheck = check_mac(rc,c);
+	
+	if (maccheck == 1)
+	{
+		c->sm = 1;
+	}
+	
+	else if (maccheck == -1)
+	{
+		write_client(rc,c,"0mYou may only have one account per machine");
+		kill_client(rc,c,"Multiple attempts to login from single mac address");
+	}
 	return 0;
+}
+
+int check_mac(RothagaClient *rc, RothagaClient *c)
+{
+	int check = 0;
+	int i = 0;
+
+	for (i = 0; i < MAX_CLIS; i++)
+	{
+		if ((rc[i].s > 0) && (rc[i].c != c->c))
+		{
+			check = memcmp(rc[i].mac_address, c->mac_address, 6);
+
+			if (check == 0)
+			{
+				return -1;
+			}
+		}
+	}
+	
+	return 1;
 }
 
 int karma_gift(RothagaClient *rc, RothagaClient *c)
