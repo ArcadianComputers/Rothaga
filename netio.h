@@ -99,10 +99,7 @@ int send_karma(RothagaClient *, char *);			/* client side karma! */
 int net_connect(RothagaClient *, RothagaServer *);		/* connect to server */
 int send_mac(RothagaClient *);					/* send client MAC to server */
 int set_mac(RothagaClient *, RothagaClient *);			/* set client MAC on server */
-<<<<<<< Updated upstream
 int rndname(RothagaClient *);					/* create a random name if one if not entered */
-=======
 int check_mac(RothagaClient *, RothagaClient *);
->>>>>>> Stashed changes
 
 #endif /* NETIO_H_ */
