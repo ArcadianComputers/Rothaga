@@ -132,6 +132,20 @@ int main (int argc, char **argv)
 
 int send_mac(RothagaClient *rc)
 {
+	char *tmp = NULL;
+
+	tmp = ralloc(CLI_BUFR);
+
+	snprintf(tmp,CLI_BUFR-1,"Sm%s",rc->mac_address);
+
+	write_to_server(c,tmp);
+
+	memset(c->cliname,0,NAME_LEN);
+
+	strncpy(c->cliname,cliname,NAME_LEN-1);
+
+	free(tmp);
+
 	return 0;
 }
 
