@@ -298,6 +298,10 @@ int check_mac(RothagaClient *rc, RothagaClient *c)
 		{
 			check = memcmp(rc[i].mac_address, c->mac_address, 6);
 
+			printf("c->mac_address = %02x:%02x:%02x:%02x:%02x:%02x, rc[i].mac_address = %02x:%02x:%02x:%02x:%02x:%02x, check = %i\n",
+			c->mac_address[0],c->mac_address[1],c->mac_address[2],c->mac_address[3],c->mac_address[4],c->mac_address[5],
+			rc[i].mac_address[0],rc[i].mac_address[1],rc[i].mac_address[2],rc[i].mac_address[3],rc[i].mac_address[4],rc[i].mac_address[5],check);
+
 			if (check == 0)
 			{
 				return -1;
