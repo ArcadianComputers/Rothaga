@@ -133,16 +133,22 @@ int main (int argc, char **argv)
 int send_mac(RothagaClient *rc)
 {
 	char *tmp = NULL;
+	unsigned char *address = NULL;
 
 	tmp = ralloc(CLI_BUFR);
+	address = ralloc(7);
 
-	snprintf(tmp,CLI_BUFR-1,"Sm%s",rc->mac_address);
+	address[0] = rc->mac_address[0];
+	address[1] = rc->mac_address[1];
+	address[2] = rc->mac_address[2];
+	address[3] = rc->mac_address[3];
+	address[4] = rc->mac_address[4];
+	address[5] = rc->mac_address[5];
+	address[6] = 0;
 
-	write_to_server(c,tmp);
+	snprintf(tmp,CLI_BUFR-1,"Sm%s",address);
 
-	memset(c->cliname,0,NAME_LEN);
-
-	strncpy(c->cliname,cliname,NAME_LEN-1);
+	write_to_server(rc,tmp);
 
 	free(tmp);
 

@@ -4,10 +4,47 @@
 #include <netinet/in.h>
 #include <string.h>
 
+#ifdef OSX
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <net/if_dl.h>
+#endif
+
 unsigned char mac_address[6];
 
 unsigned char *getmac(void);
 
+#ifdef OSX
+unsigned char *getmac(void)
+{
+	const char* if_name = "en0";
+	struct ifaddrs* iflist;
+	struct ifaddrs* cur;
+	struct sockaddr_dl* sdl;
+
+	if (getifaddrs(&iflist) == 0) 
+	{
+        	for (cur = iflist; cur; cur = cur->ifa_next) 
+		{
+			if ((cur->ifa_addr->sa_family == AF_LINK) &&
+			(strcmp(cur->ifa_name, if_name) == 0) &&
+			cur->ifa_addr) 
+			{
+				sdl = (struct sockaddr_dl*)cur->ifa_addr;
+                		memcpy(mac_address, LLADDR(sdl), sdl->sdl_alen);
+                		break;
+            		}
+        	}
+
+        	freeifaddrs(iflist);
+    	}
+
+    	return &mac_address[0];
+}
+#endif
+
+#ifndef OSX
 unsigned char *getmac(void)
 {
 	struct ifreq ifr;
@@ -65,3 +102,5 @@ unsigned char *getmac(void)
 
 	return &mac_address[0];
 }
+
+#endif
