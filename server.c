@@ -232,18 +232,47 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	c->fstmes = c->sndmes;	
 
-	if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
-	else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
-	else if (strncmp(cmd,"PN",2)==0) send_pong(rc,c);
-	else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
-	else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
-	else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c);	
+	if (c->sm == 1)
+	{
+		if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
+		else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
+		else if (strncmp(cmd,"PN",2)==0) send_pong(rc,c);
+		else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
+		else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
+		else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c);
+	}
+
+	else if (c->sm == 0)
+	{
+		if (strncmp(cmd,"Sm",2)==0) set_mac(rc,c);
+	}
 
 	pcend:
 
 	memset(c->b,0,CLI_BUFR);
 
 	c->nc = 0;
+
+	return 0;
+}
+
+int set_mac(RothagaClient *rc, RothagaClient *c)
+{
+	int i = 0;
+
+	char *tmp = NULL;
+
+	tmp = c->b+2;		/* skip SM */
+
+	for (i = 0; i < 6; i++)
+	{
+		c->mac_address[i] = tmp[i];
+	}
+
+	printf("Client %i set mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",
+		c->c,c->mac_address[0],c->mac_address[1],c->mac_address[2],c->mac_address[3],c->mac_address[4],c->mac_address[5]);
+
+	c->sm = 1;
 
 	return 0;
 }

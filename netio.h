@@ -58,6 +58,7 @@ typedef struct
 	int tr;							/* number of times reported */
 	int karma;						/* karma (duh) */
 	int kv;							/* karma loss vector */
+	int sm;							/* is the mac address set? */
 	unsigned char mac_address[6];				/* MAC address of this client */
 
 } RothagaClient;
@@ -96,5 +97,6 @@ int karma_gift(RothagaClient *, RothagaClient *);		/* the gift of karma! */
 int send_karma(RothagaClient *, char *);			/* client side karma! */
 int net_connect(RothagaClient *, RothagaServer *);		/* connect to server */
 int send_mac(RothagaClient *);					/* send client MAC to server */
+int set_mac(RothagaClient *, RothagaClient *);			/* set client MAC on server */
 
 #endif /* NETIO_H_ */
