@@ -240,6 +240,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 		else if (strncmp(cmd,"RP",2)==0) send_report(rc,c);
 		else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
 		else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c);
+		else if (strncmp(cmd,"PM",2)==0) private_message(rc,c);
 	}
 
 	else if (c->sm == 0)
@@ -252,6 +253,36 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	memset(c->b,0,CLI_BUFR);
 
 	c->nc = 0;
+
+	return 0;
+}
+
+int private_message(RothagaClient *rc, RothagaClient *c)
+{
+	int l = 0;              /* length counter */
+        char *tmp = NULL;	/* tmp pointer */
+	char *recip = NULL;	/* recipient */
+	char *msg =
+	RothagaClient *r;	/* client structure of message recipient */
+
+	tmp = c->b+2;		/* skip PM */
+
+	recip = ralloc(NAME_LEN);
+
+	strncpy(recip,gettok(tmp,' ',1),NAME_LEN-1);
+
+	r = lookup_client_by_name(rc,recip);
+
+	if (r == NULL)
+	{
+		write_client(rc,c,"0NNo such user.");
+		free(recip);
+		return -1;
+	}
+
+	tmp = tmp + strlen(recip) + 1;	/* skip user and space */
+
+	write_client(rc,r,"Place holder");
 
 	return 0;
 }
@@ -317,7 +348,7 @@ int karma_gift(RothagaClient *rc, RothagaClient *c)
         int l = 0;              /* length counter */
         char *tmp = NULL;	/* tmp pointer */
 	char *kg = NULL;	/* karma giftee */
-	RothagaClient *r;	/* client structure of reportee */
+	RothagaClient *r;	/* client structure of giftee */
 	int kma = 0;		/* karma given/taken */
 
 	tmp = c->b+2;
