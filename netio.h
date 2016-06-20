@@ -29,6 +29,7 @@
 #define NAME_LEN 16				/* max length of a clients name */
 #define MIN_NAME_LEN 2				/* min length of a clients name */
 #define SRV_PORT 7117				/* TCP port we listen on */
+#define DEF_SERV "96.91.245.193"		/* starting server */
 #define CLI_BUFR 1024				/* size of client buffer */
 #define MAX_CLIS 256				/* maximum number of clients */
 #define MAX_SRVS 1				/* maximum number of servers */
@@ -98,5 +99,6 @@ int send_karma(RothagaClient *, char *);			/* client side karma! */
 int net_connect(RothagaClient *, RothagaServer *);		/* connect to server */
 int send_mac(RothagaClient *);					/* send client MAC to server */
 int set_mac(RothagaClient *, RothagaClient *);			/* set client MAC on server */
+int rndname(RothagaClient *);					/* create a random name if one if not entered */
 
 #endif /* NETIO_H_ */

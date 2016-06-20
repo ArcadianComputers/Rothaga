@@ -21,6 +21,8 @@
 
 #define ENT_SRC "/dev/random"
 
+const char *defname = "Rothagan";				/* if the client dosen't pick a name */
+
 int main (int argc, char **argv)
 {
 	int re = 0;						/* return code */
@@ -40,34 +42,42 @@ int main (int argc, char **argv)
 	/* find_clients() */
 	/* show interface() */
 
+	memset(&rc,0,sizeof(rc));				/* clear out the client structure */
+	memset(&rs,0,sizeof(rs));				/* clear out the server structure */
+
+	rc.cliname = ralloc(NAME_LEN);
+
+	rs.sin.sin_family = AF_INET;
+
 	if (argc < 4)
 	{
 		printf("\nUsage: %s <name> <server> <port>\n",argv[0]);
-		return -1;
+
+		rndname(&rc);
+
+		rs.sin.sin_addr.s_addr	= inet_addr(DEF_SERV);
+		rs.sin.sin_port		= htons(SRV_PORT);
 	}
 
-	memset(&rc,0,sizeof(rc));				/* clear out the client structure */
-	memset(&rs,0,sizeof(rs));				/* clear out the server structure */
-	
-	rc.cliname = ralloc(NAME_LEN);
-	
-	strncpy(rc.cliname, argv[1], NAME_LEN-1);
+	else
+	{
+		strncpy(rc.cliname, argv[1], NAME_LEN-1);
+		rs.sin.sin_addr.s_addr	= inet_addr(argv[2]);
+		rs.sin.sin_port		= htons(atoi(argv[3]));
+	}
 
 	rc.argyon = ralloc(NAME_LEN);
 
 	printf("Client chose name: %s\n", rc.cliname);
 	/* printf("plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
 		
-	load_config(LNX_CFG);
+	load_config(LNX_CFG);			/* parse our config file */
 
-	rs.sin.sin_family	= AF_INET;
-	rs.sin.sin_addr.s_addr	= inet_addr(argv[2]);
-	rs.sin.sin_port		= htons(atoi(argv[3]));
+	net_connect(&rc,&rs);			/* connect to the network */
 
-	net_connect(&rc,&rs);
+	send_mac(&rc);				/* send our mac address */
 
-	set_name(&rc,argv[1]);	/* set our name as soon as we connect */
-	send_mac(&rc);
+	set_name(&rc,rc.cliname);		/* set our name as soon as we connect */
 
 	while(1)
 	{
@@ -130,6 +140,17 @@ int main (int argc, char **argv)
 	return 0;
 }
 
+int rndname(RothagaClient *rc)
+{
+	time_t tloc;
+
+	srand(time(&tloc));	/* pseudorandom time seeding */
+
+	snprintf(rc->cliname,NAME_LEN-1,"%s%i",defname,rand());
+
+	return 0;
+}
+
 int send_mac(RothagaClient *rc)
 {
 	char *tmp = NULL;
@@ -179,11 +200,11 @@ int net_connect(RothagaClient *rc, RothagaServer *rs)
 	if (re == -1)
 	{
 		perror("connect(): ");
-		printf("Failed to connect to %s on port %i\n",inet_ntoa(rs->sin.sin_addr),rs->sin.sin_port);
+		printf("Failed to connect to %s on port %i\n",inet_ntoa(rs->sin.sin_addr),ntohs(rs->sin.sin_port));
 		return -1;
 	}
 
-	printf("Connected to %s:%i\n",inet_ntoa(rs->sin.sin_addr),rs->sin.sin_port);
+	printf("Connected to %s:%i\n",inet_ntoa(rs->sin.sin_addr),ntohs(rs->sin.sin_port));
 
 	rc->b = ralloc(CLI_BUFR);
 	rc->k = ralloc(CLI_BUFR);

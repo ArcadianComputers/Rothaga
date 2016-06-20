@@ -262,7 +262,7 @@ int set_mac(RothagaClient *rc, RothagaClient *c)
 
 	char *tmp = NULL;
 
-	tmp = c->b+2;		/* skip SM */
+	tmp = c->b+2;		/* skip Sm */
 
 	for (i = 0; i < 6; i++)
 	{
