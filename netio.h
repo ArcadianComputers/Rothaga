@@ -31,7 +31,7 @@
 #define SRV_PORT 7117				/* TCP port we listen on */
 #define DEF_SERV "96.91.245.193"		/* starting server */
 #define CLI_BUFR 1024				/* size of client buffer */
-#define MAX_CLIS 8				/* maximum number of clients */
+#define MAX_CLIS 256				/* maximum number of clients */
 #define MAX_SRVS 1				/* maximum number of servers */
 #define KARMA_BASE 25				/* starting level for karma */
 #define KARMA_LOSS_NAME 10			/* value deducted from karma for name changes */
