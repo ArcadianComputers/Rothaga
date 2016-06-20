@@ -372,21 +372,25 @@ int print_pong(RothagaClient *c)
 
 int set_name(RothagaClient *c, char *cliname)
 {
-	char *tmp = NULL;
+	char *tmp = NULL;				/* tmp buffer */
+	
+	tmp = ralloc(CLI_BUFR);				/* allocate and clear it */
 
-	tmp = ralloc(CLI_BUFR);
+	snprintf(tmp,CLI_BUFR-1,"SN%s",cliname);	/* format the command */
 
-	snprintf(tmp,CLI_BUFR-1,"SN%s",cliname);
+	write_to_server(c,tmp);				/* send the command */
 
-	write_to_server(c,tmp);
+	memset(c->tmp,0,CLI_BUFR);			/* clear tmp buffer for re-use */
 
-	memset(c->cliname,0,NAME_LEN);
+	strncpy(c->tmp,cliname,NAME_LEN-1);		/* save cliname to tmp buffer */
 
-	strncpy(c->cliname,cliname,NAME_LEN-1);
+	memset(c->cliname,0,NAME_LEN);			/* clear old cliname */
 
-	free(tmp);
+	strncpy(c->cliname,tmp,NAME_LEN-1);		/* copy saved name from tmp to cliname */
 
-	return 0;
+	free(tmp);					/* free tmp */
+
+	return 0;					/* all done */
 }
 
 int confirmation_of_report(RothagaClient *c,char *reported)
