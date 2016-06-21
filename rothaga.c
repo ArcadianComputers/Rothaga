@@ -278,6 +278,10 @@ int parse_console_command(RothagaClient *c)
 		send_karma(c,tmp+4);
 	}
 
+	else if (strncmp(tmp,"/pm",3) == 0)
+	{
+		send_private_message(c,tmp+4);
+	}
 	else if (strncmp(tmp,"/yes",4) == 0)
 	{
 		if (c->f == NULL) goto pcend;
@@ -366,6 +370,35 @@ int print_pong(RothagaClient *c)
 	clock_gettime(CLOCK_MONOTONIC, &c->pong);
 
 	printf("Pong: %.03f milliseconds\n",((c->pong.tv_nsec - c->ping.tv_nsec) / 1.0e6));
+
+	return 0;
+}
+
+int send_private_message(RothagaClient *c, char *details)
+{
+	char *tmp = NULL;
+	char *cliname = NULL;	
+	char *message = NULL;
+
+	tmp = ralloc(CLI_BUFR);
+	cliname = ralloc(NAME_LEN);
+	message = ralloc(CLI_BUFR);
+	
+	if ((gettok(details,'-',1) == NULL) || (gettok(details,'-',2) == NULL))
+	{
+		printf("In order to send a message type /pm <user>-<message>; to send <message> to <user>");
+		printf("For example /pm Agathor-Hello World;");
+
+		return -1;
+	}
+	
+	strncpy(cliname,gettok(details,'-',1),NAME_LEN-1);
+	
+	strncpy(message,gettok(details,';',2),CLI_BUFR-1);
+
+	snprintf(tmp,CLI_BUFR-1,"PM%s %s",cliname,message);
+
+	write_to_server(c,tmp);
 
 	return 0;
 }
