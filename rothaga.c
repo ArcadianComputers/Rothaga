@@ -384,6 +384,13 @@ int send_private_message(RothagaClient *c, char *details)
 	cliname = ralloc(NAME_LEN);
 	message = ralloc(CLI_BUFR);
 	
+	if ((gettok(details,' ',1) == NULL) || (details+strlen(gettok(details,' ',1)) == NULL))
+	{
+		printf("To gift karma: /kg <name> <amount> Example: /kg Jon 100\n");
+	
+		return -1;
+	}
+
 	strncpy(cliname,gettok(details,' ',1),NAME_LEN-1);
 	
 	strncpy(message,details+strlen(gettok(details,' ',1)+1,CLI_BUFR-1);
