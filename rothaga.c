@@ -384,17 +384,9 @@ int send_private_message(RothagaClient *c, char *details)
 	cliname = ralloc(NAME_LEN);
 	message = ralloc(CLI_BUFR);
 	
-	if ((gettok(details,'-',1) == NULL) || (gettok(details,'-',2) == NULL))
-	{
-		printf("In order to send a message type /pm <user>-<message>; to send <message> to <user>");
-		printf("For example /pm Agathor-Hello World;");
-
-		return -1;
-	}
+	strncpy(cliname,gettok(details,' ',1),NAME_LEN-1);
 	
-	strncpy(cliname,gettok(details,'-',1),NAME_LEN-1);
-	
-	strncpy(message,gettok(details,';',2),CLI_BUFR-1);
+	strncpy(message,details+strlen(gettok(details,' ',1)+1,CLI_BUFR-1);
 
 	snprintf(tmp,CLI_BUFR-1,"PM%s %s",cliname,message);
 
