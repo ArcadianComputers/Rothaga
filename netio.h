@@ -37,7 +37,8 @@
 #define KARMA_LOSS_NAME 10			/* value deducted from karma for name changes */
 #define KARMA_LOSS_FLOOD 2			/* penalty for flooding the chat */
 #define KARMA_LOSS_REPORT 5			/* penalty for being reported */
-#define KARMA_LOSS_VECTOR 5			/* exponential rate that karma loss increases*/
+#define KARMA_LOSS_VECTOR 5			/* exponential rate that karma loss increases */
+#define MIN_KARMA_PM 100			/* minimum karma needed to send private messages */
 
 typedef void (*ftc)(void *, char *);		/* void function pointer */ /* Jon hates this one */
 
@@ -61,6 +62,7 @@ typedef struct
 	int kv;							/* karma loss vector */
 	int sm;							/* is the mac address set? */
 	unsigned char mac_address[6];				/* MAC address of this client */
+	int vp;							/* voice point, earned at MIN_KARMA_PM */
 
 } RothagaClient;
 

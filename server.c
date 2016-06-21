@@ -205,12 +205,18 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	printf("Client %i said: %s",c->c,c->b);
 
-	if(c->karma < 0)
+	if (c->karma < 0)
 	{
 		write_client(rc,c,"You dun goofed.");
 		kill_client(rc,c,"Kicked for negative Karma.");
 		
 		return -1;
+	}
+
+	else if ((c->karma >= MIN_KARMA_PM) && (c->vp == 0))
+	{
+		write_client(rc,c,"9VYou may now send private messages!");
+		c->vp = 1;
 	}
 	
 	clock_gettime(CLOCK_MONOTONIC, &c->sndmes);
@@ -259,15 +265,21 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 int private_message(RothagaClient *rc, RothagaClient *c)
 {
-	int l = 0;              /* length counter */
         char *tmp = NULL;	/* tmp pointer */
 	char *recip = NULL;	/* recipient */
-	char *msg =
+	char *msg = NULL;	/* the message */
 	RothagaClient *r;	/* client structure of message recipient */
+
+	if ((c->karma < MIN_KARMA_PM) && (c->vp == 0))
+	{
+		write_client(rc,c,"0KNot enough Karma to send private messages.");
+		return -1;
+	}
 
 	tmp = c->b+2;		/* skip PM */
 
 	recip = ralloc(NAME_LEN);
+	msg = ralloc(CLI_BUFR);
 
 	strncpy(recip,gettok(tmp,' ',1),NAME_LEN-1);
 
@@ -277,12 +289,28 @@ int private_message(RothagaClient *rc, RothagaClient *c)
 	{
 		write_client(rc,c,"0NNo such user.");
 		free(recip);
+		free(msg);
+		return -1;
+	}
+
+	if (gettok(tmp,' ',2) == NULL)
+	{
+		write_client(rc,c,"0PNo message given.");
+		free(recip);
+		free(msg);
 		return -1;
 	}
 
 	tmp = tmp + strlen(recip) + 1;	/* skip user and space */
 
-	write_client(rc,r,"Place holder");
+	snprintf(msg,CLI_BUFR-1,"PM%s %s",c->cliname,tmp);
+
+	write_client(rc,r,msg);
+
+	c->karma--;			/* 1 point per private message */
+
+	free(recip);
+	free(msg);
 
 	return 0;
 }

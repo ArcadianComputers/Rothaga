@@ -394,7 +394,7 @@ int send_private_message(RothagaClient *c, char *details)
 
 	strncpy(cliname,gettok(details,' ',1),NAME_LEN-1);
 	
-	strncpy(message,details+strlen(gettok(details,' ',1)+1,CLI_BUFR-1);
+	strncpy(message,details+strlen(gettok(details,' ',1))+1,CLI_BUFR-1);
 
 	snprintf(tmp,CLI_BUFR-1,"PM%s %s",cliname,message);
 
