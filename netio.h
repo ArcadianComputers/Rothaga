@@ -102,5 +102,6 @@ int set_mac(RothagaClient *, RothagaClient *);			/* set client MAC on server */
 int rndname(RothagaClient *);					/* create a random name if one if not entered */
 int check_mac(RothagaClient *, RothagaClient *);		/* checks to make sure one mac address isn't attempting to connect several times */
 int send_private_message(RothagaClient *,char *);		/* does exactly what you would think... */
+int private_message(RothagaClient *, RothagaClient *); 		/* server side */
 
 #endif /* NETIO_H_ */
