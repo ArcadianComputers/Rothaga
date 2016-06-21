@@ -323,7 +323,7 @@ int send_karma(RothagaClient *c, char *details)
 
 	if ((gettok(details,' ',1) == NULL) || (gettok(details,' ',2) == NULL))
 	{
-		printf("To gift karma: /kg <name> <amount> Example: /kg Jon 100\n");
+		printf("To gift karma: /kg <name> <amount> Example: /kg Agathor 100\n");
 	
 		return -1;
 	}
@@ -386,8 +386,9 @@ int send_private_message(RothagaClient *c, char *details)
 	
 	if ((gettok(details,' ',1) == NULL) || (gettok(details,' ',2) == NULL))
 	{
-		printf("To gift karma: /kg <name> <amount> Example: /kg Jon 100\n");
-	
+		printf("To send a private message: /pm <name> <message>\n");
+		printf("For example: /pm Agathor Hello\n");
+
 		return -1;
 	}
 
