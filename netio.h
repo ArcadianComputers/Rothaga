@@ -75,26 +75,26 @@ typedef struct
 } RothagaServer;
 
 RothagaClient *find_free_client(RothagaClient *);		/* find and return an open client slot */
-int set_client_name(RothagaClient *,RothagaClient *);		/* parse SN command to set the client's name */
-int parse_client_message(RothagaClient *,RothagaClient *);	/* parse SM command to send a global message */
-int parse_client_command(RothagaClient *,RothagaClient *);	/* parse a command from a client */
-int kill_client(RothagaClient *,RothagaClient *,char *);	/* close a client connection and free it's slot */
-int write_client(RothagaClient *,RothagaClient *,char *);	/* write data to a client */
+int set_client_name(RothagaClient *, RothagaClient *);		/* parse SN command to set the client's name */
+int parse_client_message(RothagaClient *, RothagaClient *);	/* parse SM command to send a global message */
+int parse_client_command(RothagaClient *, RothagaClient *);	/* parse a command from a client */
+int kill_client(RothagaClient *,RothagaClient *, char *);	/* close a client connection and free it's slot */
+int write_client(RothagaClient *,RothagaClient *, char *);	/* write data to a client */
 int parse_console_command(RothagaClient *);			/* parse a command from the console */
 int parse_server_message(RothagaClient *);			/* parse a message from the server */
-int set_name(RothagaClient *,char *);				/* set our name on the network */
-int report_user(RothagaClient *,char *);			/* allows you to report a user */
-int write_to_server(RothagaClient *,char *);			/* write a command out to the server */
-int send_message(RothagaClient *,char *);			/* send a global message */
+int set_name(RothagaClient *, char *);				/* set our name on the network */
+int report_user(RothagaClient *, char *);			/* allows you to report a user */
+int write_to_server(RothagaClient *, char *);			/* write a command out to the server */
+int send_message(RothagaClient *, char *);			/* send a global message */
 void sig_pipe_reset(int);					/* reset a client slot that was determined to be dead on write */
-int ping_server(RothagaClient *,char *);			/* find the ping between your computer and the server, or another client*/
-int send_pong(RothagaClient *,RothagaClient *);			/* Sends ping back */
-int send_report(RothagaClient *,RothagaClient *);		/* sends name of reported client to every user on the server */
-int new_report(RothagaClient *,char *);				/* confirm the client wants to report a user */
-int confirm_report(RothagaClient *,RothagaClient *);		/* confirms the reporting with all users */
+int ping_server(RothagaClient *, char *);			/* find the ping between your computer and the server, or another client*/
+int send_pong(RothagaClient *, RothagaClient *);		/* Sends ping back */
+int send_report(RothagaClient *, RothagaClient *);		/* sends name of reported client to every user on the server */
+int new_report(RothagaClient *, char *);			/* confirm the client wants to report a user */
+int confirm_report(RothagaClient *, RothagaClient *);		/* confirms the reporting with all users */
 /* int karma_check(RothagaClient *); */				/* Checks karma levels for each user */
 RothagaClient *lookup_client_by_name(RothagaClient *rc,char *);	/* find a client structure by name */
-int confirmation_of_report(RothagaClient *,char *);		/* send a yes answer in response to a report request */
+int confirmation_of_report(RothagaClient *, char *);		/* send a yes answer in response to a report request */
 int cisin(char);						/* check for allowed characters */
 void char_cleaner(char *str);					/* get rid of control characters */
 int karma_gift(RothagaClient *, RothagaClient *);		/* the gift of karma! */
@@ -104,8 +104,9 @@ int send_mac(RothagaClient *);					/* send client MAC to server */
 int set_mac(RothagaClient *, RothagaClient *);			/* set client MAC on server */
 int rndname(RothagaClient *);					/* create a random name if one if not entered */
 int check_mac(RothagaClient *, RothagaClient *);		/* checks to make sure one mac address isn't attempting to connect several times */
-int send_private_message(RothagaClient *,char *);		/* does exactly what you would think... */
+int send_private_message(RothagaClient *, char *);		/* does exactly what you would think... */
 int private_message(RothagaClient *, RothagaClient *); 		/* server side */
 int big_message(RothagaClient *, RothagaClient *);		/* send a big annoying 3d message */
+int send_big_message(RothagaClient *, char *);			/* ^-- from the client */
 
 #endif /* NETIO_H_ */

@@ -270,7 +270,7 @@ int parse_console_command(RothagaClient *c)
 	
 	else if (strncmp(tmp,"/pd",3) == 0)
 	{
-		request_image(rc,c,tmp+4);
+		/* request_image(rc,c,tmp+4); */
 	}
 
 	else if (strncmp(tmp,"/comlist",8) == 0)
@@ -287,6 +287,12 @@ int parse_console_command(RothagaClient *c)
 	{
 		send_private_message(c,tmp+4);
 	}
+
+	else if (strncmp(tmp,"/bm",3) == 0)
+	{
+		send_big_message(c,tmp+4);
+	}
+
 	else if (strncmp(tmp,"/yes",4) == 0)
 	{
 		if (c->f == NULL) goto pcend;
@@ -317,7 +323,25 @@ int parse_console_command(RothagaClient *c)
 	return 0;
 }
 
-int image_request (RothagaClient *c, char *request)
+int send_big_message(RothagaClient *c, char *msg)
+{
+	int l = 0;
+	char *tmp = NULL;
+
+	l = (strlen(msg) + 4);
+
+	tmp = ralloc(l);
+
+	snprintf(tmp,l-1,"BM%s",msg);
+
+	write_to_server(c,tmp);
+
+	free(tmp);
+
+	return 0;
+}
+
+int image_request(RothagaClient *c, char *request)
 {
 	char *tmp = NULL;
 	
