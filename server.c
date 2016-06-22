@@ -740,7 +740,7 @@ int kill_client(RothagaClient *rc, RothagaClient *c, char *reason)
 
 	c->s = -2;  			/* make sure we set it as free */
 	c->karma = 0;			/* no one else gets the karma */
-	memset(mac_address,0,6);	/* clears mac address so a client can reconnect */
+	memset(c->mac_address,0,6);	/* clears mac address so a client can reconnect */
 	c->vp = 0;			/* gets rid of voice points */
 			
 	return 0;
