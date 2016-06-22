@@ -268,6 +268,11 @@ int parse_console_command(RothagaClient *c)
 		c->f = (void *)report_user;
 	}
 	
+	else if (strncmp(tmp,"/pd",3) == 0)
+	{
+		request_image(rc,c,tmp+4);
+	}
+
 	else if (strncmp(tmp,"/comlist",8) == 0)
 	{
 		printf("The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/kg <user>' will gift some of your karma to <user> \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
@@ -310,6 +315,26 @@ int parse_console_command(RothagaClient *c)
 	free(tmp);
 
 	return 0;
+}
+
+int image_request (RothagaClient *c, char *request)
+{
+	char *tmp = NULL;
+	
+	tmp = ralloc(CLI_BUFR);
+
+	if (request == NULL)
+	{
+		printf("You must enter a valid command\n");
+
+		return -1;
+	}
+
+	snprintf(tmp,CLI_BUFR-1,"PD%s",request);
+
+	write_to_server(c,tmp);
+	
+	return 1;
 }
 
 int send_karma(RothagaClient *c, char *details)
