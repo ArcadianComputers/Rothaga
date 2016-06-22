@@ -1,6 +1,14 @@
 # Rothaga
 Encrypted Chat and File Transfer
 
+<06/22/2016>  New features in 0.9 Alpha!
+
+		* MAC Address checking			Go ahead, try to make a clone!
+
+		* /kg <name> <amount>			Karma gifting, give a friend some Karma.
+
+		* /pm <name> <message>			Send private messages. 
+
 <05/19/2016>  We are making progress daily on both the client and server code!
 	      
 		* Name lengths are now restricted to 16 characters by default.

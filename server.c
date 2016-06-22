@@ -247,6 +247,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 		else if (strncmp(cmd,"CR",2)==0) confirm_report(rc,c);	
 		else if (strncmp(cmd,"KG",2)==0) karma_gift(rc,c);
 		else if (strncmp(cmd,"PM",2)==0) private_message(rc,c);
+		else if (strncmp(cmd,"BM",2)==0) big_message(rc,c);
 	}
 
 	else if (c->sm == 0)
@@ -259,6 +260,217 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 	memset(c->b,0,CLI_BUFR);
 
 	c->nc = 0;
+
+	return 0;
+}
+
+int big_message(RothagaClient *rc, RothagaClient *c)
+{
+	char *tmp = NULL;	/* tmp pointer */
+	char *msg = NULL;	/* tmp message */
+	char *fmsg = NULL;	/* final message */
+	int mcost = 0;		/* cost to send in karma */
+	int i,l,m = 0;		/* incrementation, original and final message lengths */
+
+	tmp = c->b+2;		/* skip BM */
+
+	l = strlen(c->b);
+
+	msg = ralloc(CLI_BUFR*(l*100));	/* approx msg size */
+
+	for (i = 0; i < l; i++)
+	{
+		if (((tmp[i] >= 97) && (tmp[i] <= 122)) || ((tmp[i] >= 65) && (tmp[i] <= 90)))
+		{
+			if ((tmp[i] == 65) || (tmp[i] == 97))
+			{
+				strncat(msg,a_txt,a_txt_len);
+				m+=(a_txt_len-1);
+			}
+
+			else if ((tmp[i] == 66) || (tmp[i] == 98))
+			{
+				strncat(msg,b_txt,b_txt_len);
+				m+=(b_txt_len-1);
+			}
+
+			else if ((tmp[i] == 67) || (tmp[i] == 99))
+			{
+				strncat(msg,c_txt,c_txt_len);
+				m+=(c_txt_len-1);
+			}
+
+			else if ((tmp[i] == 68) || (tmp[i] == 100))
+			{
+				strncat(msg,d_txt,d_txt_len);
+				m+=(d_txt_len-1);
+			}
+
+			else if ((tmp[i] == 69) || (tmp[i] == 101))
+			{
+				strncat(msg,e_txt,e_txt_len);
+				m+=(e_txt_len-1);
+			}
+
+			else if ((tmp[i] == 70) || (tmp[i] == 102))
+			{
+				strncat(msg,f_txt,f_txt_len);
+				m+=(f_txt_len-1);
+			}
+
+			else if ((tmp[i] == 71) || (tmp[i] == 103))
+			{
+				strncat(msg,g_txt,g_txt_len);
+				m+=(g_txt_len-1);
+			}
+
+			else if ((tmp[i] == 72) || (tmp[i] == 104))
+			{
+				strncat(msg,h_txt,h_txt_len);
+				m+=(h_txt_len-1);
+			}
+
+			else if ((tmp[i] == 73) || (tmp[i] == 105))
+			{
+				strncat(msg,i_txt,i_txt_len);
+				m+=(i_txt_len-1);
+			}
+
+			else if ((tmp[i] == 74) || (tmp[i] == 106))
+			{
+				strncat(msg,j_txt,j_txt_len);
+				m+=(j_txt_len-1);
+			}
+
+			else if ((tmp[i] == 75) || (tmp[i] == 107))
+			{
+				strncat(msg,k_txt,k_txt_len);
+				m+=(k_txt_len-1);
+			}
+
+			else if ((tmp[i] == 76) || (tmp[i] == 108))
+			{
+				strncat(msg,l_txt,l_txt_len);
+				m+=(l_txt_len-1);
+			}
+
+			else if ((tmp[i] == 77) || (tmp[i] == 109))
+			{
+				strncat(msg,m_txt,m_txt_len);
+				m+=(m_txt_len-1);
+			}
+
+			else if ((tmp[i] == 78) || (tmp[i] == 110))
+			{
+				strncat(msg,n_txt,n_txt_len);
+				m+=(n_txt_len-1);
+			}
+
+			else if ((tmp[i] == 79) || (tmp[i] == 111))
+			{
+				strncat(msg,o_txt,o_txt_len);
+				m+=(o_txt_len-1);
+			}
+
+			else if ((tmp[i] == 80) || (tmp[i] == 112))
+			{
+				strncat(msg,p_txt,p_txt_len);
+				m+=(p_txt_len-1);
+			}
+
+			else if ((tmp[i] == 81) || (tmp[i] == 113))
+			{
+				strncat(msg,q_txt,q_txt_len);
+				m+=(q_txt_len-1);
+			}
+
+			else if ((tmp[i] == 82) || (tmp[i] == 114))
+			{
+				strncat(msg,r_txt,r_txt_len);
+				m+=(r_txt_len-1);
+			}
+
+			else if ((tmp[i] == 83) || (tmp[i] == 115))
+			{
+				strncat(msg,s_txt,s_txt_len);
+				m+=(s_txt_len-1);
+			}
+
+			else if ((tmp[i] == 84) || (tmp[i] == 116))
+			{
+				strncat(msg,t_txt,t_txt_len);
+				m+=(t_txt_len-1);
+			}
+
+			else if ((tmp[i] == 85) || (tmp[i] == 117))
+			{
+				strncat(msg,u_txt,u_txt_len);
+				m+=(u_txt_len-1);
+			}
+
+			else if ((tmp[i] == 86) || (tmp[i] == 118))
+			{
+				strncat(msg,v_txt,v_txt_len);
+				m+=(v_txt_len-1);
+			}
+
+			else if ((tmp[i] == 87) || (tmp[i] == 119))
+			{
+				strncat(msg,w_txt,w_txt_len);
+				m+=(w_txt_len-1);
+			}
+
+			else if ((tmp[i] == 88) || (tmp[i] == 120))
+			{
+				strncat(msg,x_txt,x_txt_len);
+				m+=(x_txt_len-1);
+			}
+
+			else if ((tmp[i] == 89) || (tmp[i] == 121))
+			{
+				strncat(msg,y_txt,y_txt_len);
+				m+=(y_txt_len-1);
+			}
+
+			else if ((tmp[i] == 90) || (tmp[i] == 122))
+			{
+				strncat(msg,z_txt,z_txt_len);
+				m+=(z_txt_len-1);
+			}
+
+			mcost += KARMA_PER_BM;	/* total karma cost */
+		}
+
+		else
+		{
+			msg[m] = c->b[i];	/* any other character */
+			m++;			/* track position in m */
+		}
+	}
+
+	if (mcost > c->karma)
+	{
+		write_client(rc,c,"0KNot enough Karma for message!");
+	}
+
+	c->karma-=mcost;			/* KARMA_PER_BM per letter */
+
+	m += (strlen(c->cliname) + 5 + strlen(itoa(c->karma)));	/* exact message size */
+
+	fmsg = ralloc(m+1);
+
+	snprintf(fmsg,m,"BM%s(%i) %s",c->cliname,msg);
+
+	for (i = 0; i < MAX_CLIS; i++)
+	{
+		if (rc[i]->s != -2)
+		{
+			write_client(rc,&rc[i],fmsg);
+		}
+	}
+
+	free(msg);
+	free(fmsg);
 
 	return 0;
 }

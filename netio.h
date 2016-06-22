@@ -39,6 +39,7 @@
 #define KARMA_LOSS_REPORT 5			/* penalty for being reported */
 #define KARMA_LOSS_VECTOR 5			/* exponential rate that karma loss increases */
 #define MIN_KARMA_PM 100			/* minimum karma needed to send private messages */
+#define KARMA_PER_BM 5				/* karma per letter in a BM */
 
 typedef void (*ftc)(void *, char *);		/* void function pointer */ /* Jon hates this one */
 
@@ -105,5 +106,6 @@ int rndname(RothagaClient *);					/* create a random name if one if not entered 
 int check_mac(RothagaClient *, RothagaClient *);		/* checks to make sure one mac address isn't attempting to connect several times */
 int send_private_message(RothagaClient *,char *);		/* does exactly what you would think... */
 int private_message(RothagaClient *, RothagaClient *); 		/* server side */
+int big_message(RothagaClient *, RothagaClient *);		/* send a big annoying 3d message */
 
 #endif /* NETIO_H_ */
