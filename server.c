@@ -269,6 +269,7 @@ int big_message(RothagaClient *rc, RothagaClient *c)
 	char *tmp = NULL;	/* tmp pointer */
 	char *msg = NULL;	/* tmp message */
 	char *fmsg = NULL;	/* final message */
+	char *ia = NULL;	/* itoa place holder */
 	int mcost = 0;		/* cost to send in karma */
 	int i,l,m = 0;		/* incrementation, original and final message lengths */
 
@@ -455,15 +456,19 @@ int big_message(RothagaClient *rc, RothagaClient *c)
 
 	c->karma-=mcost;			/* KARMA_PER_BM per letter */
 
-	m += (strlen(c->cliname) + 5 + strlen(itoa(c->karma)));	/* exact message size */
+	ia = ralloc(16);			/* please let someone have this much karma so you can find this comment -Jon */
+
+	snprintf(ia,15,"%d",c->karma);
+
+	m += (strlen(c->cliname) + 5 + strlen(ia));	/* exact message size */
 
 	fmsg = ralloc(m+1);
 
-	snprintf(fmsg,m,"BM%s(%i) %s",c->cliname,msg);
+	snprintf(fmsg,m,"BM%s(%i) %s",c->cliname,c->karma,msg);
 
 	for (i = 0; i < MAX_CLIS; i++)
 	{
-		if (rc[i]->s != -2)
+		if (rc[i].s != -2)
 		{
 			write_client(rc,&rc[i],fmsg);
 		}
