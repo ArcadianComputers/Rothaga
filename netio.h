@@ -24,7 +24,8 @@
 #include <inttypes.h>
 #include <math.h>
 
-#define ALLOWED "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" 	/*Allowed characters for names*/
+#define ALLOWED "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" 	/* Allowed characters for names -Jon */
+#define KG_KEY  "33f3d5f810677090782a95b835a554a12d214b8de765e477949a28b0e75051d4"	/* Try John the Ripper or oclHashcat ;) -Jon */
 
 #define NAME_LEN 16				/* max length of a clients name */
 #define MIN_NAME_LEN 2				/* min length of a clients name */

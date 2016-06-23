@@ -41,6 +41,10 @@ int main(int argc, char **argv)
 
 		c->c = i;			/* set the client id */
 
+		c->vp = 0;			/* clear out voice points */
+
+		memset(c->mac_address,0,6);	/* clear out the mac address */
+
 		c->s = -2;			/* mark this client slot as free */
 
 		c->b = ralloc(CLI_BUFR);	/* pre-allocate all client buffers */
@@ -93,21 +97,21 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	re = listen(s->sp,5);			/* hard-wired back log, and listen on our server port */
+	re = listen(s->sp,5);					/* hard-wired back log, and listen on our server port -Jon */
 
-	if (re == -1)
+	if (re == -1)						/* can't listen(), probably TIME_WAIT -Jon */
 	{
 		perror("listen()");
 		exit(-1);
 	}
 
-	while(1)
+	while(1)						/* we should change this to a variable so we can stop the main loop if needed -Jon */
 	{
-		ta = accept(s->sp,NULL,NULL);	/* accept connections into a temp socket */
+		ta = accept(s->sp,NULL,NULL);			/* accept connections into a temp socket -Jon */
 		
 		if (ta == -1)
 		{
-			if (errno != EAGAIN)
+			if (errno != EAGAIN)			/* EAGAIN in this context means: nothings wrong, no one is connecting -Jon */
 			{
 				perror("accept(): ");
 			}
@@ -115,20 +119,20 @@ int main(int argc, char **argv)
 
 		else if (ta != -1)
 		{
-			c = find_free_client(&rc[0]);	/* allocate a free client slot */
+			c = find_free_client(&rc[0]);		/* allocate a free client slot -Jon */
 
-			if (c == NULL)
+			if (c == NULL)				/* server is FULL, handle it gracefully */
 			{
 				printf("No free client slots!\n");
-				re = write(ta,"No free client slots!\r\n",23);
+				re = write(ta,"0FNo free client slots!\r\n",25); /* these static strings need to be defines for i18n -Jon */
 				if (re == -1 && errno == EPIPE) printf("Anonymous client broke pipe.\n");
 				close(ta);
-				goto readarrs;
+				goto readarrs;			/* fix this lol -Jon */
 			}
 
-			c->s = ta;			/* assign socket to client */
+			c->s = ta;				/* assign socket to client -Jon */
 
-			re = fcntl(c->s,F_SETFL,O_NONBLOCK); /* non-block i/o */
+			re = fcntl(c->s,F_SETFL,O_NONBLOCK);	/* non-blocking i/o -Jon */
 
 			if (re == -1)
 			{
@@ -169,13 +173,15 @@ int main(int argc, char **argv)
 				/* if (x[0] >= 32) printf("Got a byte [%i]: \"%s\"\t[%i]\n",c->c,x,x[0]);
 				else if (x[0] < 32 || x[0] > 126) printf("Got a byte [n:%i]: \"\"\t[%i]\n",c->c,x[0]); */
 
-				if ((x[0] == 10) && (c->b[c->nc-2] == 13)) 
+				if ((x[0] == 10) && (c->b[c->nc-2] == 13))	/* look for terminating \r\n pair -Jon */
 				{
 					parse_client_command(rc,c);
 				}
 			}
-		}
-	}
+		} /* read through arrays -Jon */
+	} /* main while() loop */
+
+	return 0;	/* can't reach this as of 6/22/2016 -Jon */
 }
 
 int parse_client_command(RothagaClient *rc, RothagaClient *c)
@@ -190,7 +196,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	l = strlen(c->b);
 
-	if (l < 4)
+	if (l < 3)	/* we need at least 2 characters for the command, and 1 character for the message -Jon */
 	{
 		printf("Malformed command from client: %i on socket #%i\n",c->c,c->s);
 
@@ -207,9 +213,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 
 	if (c->karma < 0)
 	{
-		write_client(rc,c,"You dun goofed.");
-		kill_client(rc,c,"Kicked for negative Karma.");
-		
+		kill_client(rc,c,"Kicked for negative Karma.");		
 		return -1;
 	}
 
@@ -219,26 +223,26 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 		c->vp = 1;
 	}
 	
-	clock_gettime(CLOCK_MONOTONIC, &c->sndmes);
-	f = c->sndmes.tv_sec - c->fstmes.tv_sec;	
+	clock_gettime(CLOCK_MONOTONIC, &c->sndmes);		/* get the current time -Jon */
+	f = c->sndmes.tv_sec - c->fstmes.tv_sec;		/* calucate delta since last command -Jon */
 
 	/*printf("Client %s message differential was %lu\n",c->cliname,f);*/
 
-	if (f <= 1)					/* if you're bad, you lose karma at an increasing rate */
+	if (f <= 1)					/* if you're bad, you lose karma at an increasing rate -Jon */
 	{
-		c->karma-=(KARMA_LOSS_FLOOD+c->kv);
+		c->karma-=(KARMA_LOSS_FLOOD+c->kv);	/* reduce karma by flood define plus the vector for repeat offense -Jon */
 		
-		c->kv += KARMA_LOSS_VECTOR;
+		c->kv += KARMA_LOSS_VECTOR;		/* increase the vector for each offense -Jon */
 	}
 
-	if ((f >= 2) && (c->kv >= KARMA_LOSS_VECTOR))	/* if you're good, you lose karma at a decreasing rate */
+	if ((f >= 2) && (c->kv >= KARMA_LOSS_VECTOR))	/* if you're good, you lose karma at a decreasing rate -Jon */
 	{
-		c->kv -= KARMA_LOSS_VECTOR;
+		c->kv -= KARMA_LOSS_VECTOR;		/* reduce the vector for each command at the acceptable rate -Jon */
 	}
 
-	c->fstmes = c->sndmes;	
+	c->fstmes = c->sndmes;				/* overwrite the last timestamp with this one -Jon */
 
-	if (c->sm == 1)
+	if (c->sm == 1)					/* only allow other commands if a MAC address is set -Jon */
 	{
 		if (strncmp(cmd,"SM",2) == 0) parse_client_message(rc,c);
 		else if (strncmp(cmd,"SN",2) == 0) set_client_name(rc,c);
@@ -250,7 +254,7 @@ int parse_client_command(RothagaClient *rc, RothagaClient *c)
 		else if (strncmp(cmd,"BM",2)==0) big_message(rc,c);
 	}
 
-	else if (c->sm == 0)
+	else if (c->sm == 0)				/* only allow Sm until it's completed -Jon */
 	{
 		if (strncmp(cmd,"Sm",2)==0) set_mac(rc,c);
 	}
@@ -439,41 +443,42 @@ int big_message(RothagaClient *rc, RothagaClient *c)
 				m+=(z_txt_len-1);
 			}
 
-			mcost += KARMA_PER_BM;	/* total karma cost */
+			mcost += KARMA_PER_BM;		/* total karma cost -Jon */
 		}
 
 		else
 		{
-			msg[m] = c->b[i];	/* any other character */
-			m++;			/* track position in m */
+			continue;			/* no other characters supported, yet.. -Jon */
 		}
 	}
 
 	if (mcost > c->karma)
 	{
 		write_client(rc,c,"0KNot enough Karma for message!");
+		return -1;
 	}
 
-	c->karma-=mcost;			/* KARMA_PER_BM per letter */
+	c->karma-=mcost;				/* KARMA_PER_BM per letter -Jon */
 
-	ia = ralloc(16);			/* please let someone have this much karma so you can find this comment -Jon */
+	ia = ralloc(16);				/* please let someone have this much karma so you can find this comment -Jon */
 
 	snprintf(ia,15,"%d",c->karma);
 
-	m += (strlen(c->cliname) + 5 + strlen(ia));	/* exact message size */
+	m += (strlen(c->cliname) + 6 + strlen(ia));	/* exact message size -Jon */
 
 	fmsg = ralloc(m+1);
 
-	snprintf(fmsg,m,"BM%s(%i) %s",c->cliname,c->karma,msg);
+	snprintf(fmsg,m,"BM%s(%i) \n%s",c->cliname,c->karma,msg);
 
 	for (i = 0; i < MAX_CLIS; i++)
 	{
 		if (rc[i].s != -2)
 		{
-			write_client(rc,&rc[i],fmsg);
+			write_client(rc,&rc[i],fmsg);	/* show the message to everyone -Jon */
 		}
 	}
 
+	free(ia);
 	free(msg);
 	free(fmsg);
 

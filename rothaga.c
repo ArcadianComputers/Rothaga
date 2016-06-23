@@ -36,7 +36,7 @@ int main (int argc, char **argv)
 
 	printf("%s\n",agathor);
 
-	printf("Welcome to %s version 0.9 alpha\n To view a list of commands type '/comlist'\n",argv[0]);
+	printf("Welcome to %s version 1.0 Alpha\nTo view a list of commands type '/comlist'\n",argv[0]);
 
 	/* load_config(CONFIG_FILE) */
 	/* find_clients() */
@@ -71,23 +71,24 @@ int main (int argc, char **argv)
 	printf("Client chose name: %s\n", rc.cliname);
 	/* printf("plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
 		
-	load_config(LNX_CFG);			/* parse our config file */
+	load_config(LNX_CFG);			/* parse our config file -Jon */
 
-	net_connect(&rc,&rs);			/* connect to the network */
+	net_connect(&rc,&rs);			/* connect to the network -Jon */
 
-	send_mac(&rc);				/* send our mac address */
+	send_mac(&rc);				/* send our mac address FIRST! -Jon */
 
-	set_name(&rc,rc.cliname);		/* set our name as soon as we connect */
+	set_name(&rc,rc.cliname);		/* set our name as soon as we connect -Jon */
 
 	while(1)
 	{
-		re = read(rc.s,x,1);		/* read a byte from the server */
+		re = read(rc.s,x,1);		/* read a byte from the server -Jon */
 		
 		if (re == -1)
 		{
 			if (errno == EAGAIN) goto rconsole;
 			else if (errno == EPIPE || errno == EBADF || errno == ECONNRESET)
 			{
+				perror("read(): ");
 				printf("Server closed connection.\n");
 				break;
 			}
@@ -593,8 +594,8 @@ void char_cleaner(char *str)
 
 	for(i = 0; i < l; i++)
 	{
-		if (str[i] <= 31) str[i] = 32;	/* no control sequences */
-		else if (str[i] >= 127) str[i] = 32; /* no upper ascii */
+		if ((str[i] <= 31) && (str[i] != 10)) str[i] = 32;	/* no control sequences except new line */
+		else if (str[i] >= 127) str[i] = 32;			/* no upper ascii */
 	}
 
 	return;
