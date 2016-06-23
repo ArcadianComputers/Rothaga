@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <ncurses.h>
  
 #include "Images/a.txt.h"
 #include "Images/b.txt.h"
@@ -44,5 +45,6 @@
 
 void load_config(char *);
 void kill_server(int);
+void build_ui(void);
 
 #endif /* FILEIO_H_ */

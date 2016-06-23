@@ -10,18 +10,24 @@
 #include "encio.h"
 #include "agathor.h"
 #include "OSXTIME.h"
+
+#ifndef RALLOC
+#define RALLOC
 #include "ralloc.h"
+#endif
+
 #include "gettok.h"
 #include "getmac.h"
-
-/* #include "/usr/i586-pc-msdosdjgpp/sys-include/conio.h" */
+#include "rohasha.h"
 
 #define WIN_CFG "C:\\Users\\Admin\\workspace\\Rothaga\\Rothaga.ini"
 #define LNX_CFG "./rothaga.ini"
-
 #define ENT_SRC "/dev/random"
 
 const char *defname = "Rothagan";				/* if the client dosen't pick a name */
+
+WINDOW *chat;							/* the chat window -Jon */
+WINDOW *cmds;							/* the command line -Jon */
 
 int main (int argc, char **argv)
 {
@@ -33,6 +39,8 @@ int main (int argc, char **argv)
 
 	x[0] = 0;
 	y[0] = 0;
+
+	build_ui();						/* build the user interface -Jon */
 
 	printf("%s\n",agathor);
 
@@ -110,6 +118,9 @@ int main (int argc, char **argv)
 
 		rconsole:
 
+		wrefresh(chat);
+        	wrefresh(cmds);
+
 		/* clrscr(); */
 		/* printf ("R> "); */
 
@@ -139,6 +150,27 @@ int main (int argc, char **argv)
 	free(rc.k);
 
 	return 0;
+}
+
+void build_ui(void)
+{
+	int x,y = 0;
+	initscr();						/* NCURSES screen init -Jon */
+
+	getmaxyx(stdscr,y,x);					/* get screen limits -Jon */
+
+  	chat = newwin(y-3,x,0,0);				/* create a split between i/o area -Jon */
+    	cmds = newwin(3,x,y-3,0);
+
+	scrollok(chat,TRUE);
+    	scrollok(cmds,TRUE);
+    	box(chat,'|','-');
+    	box(cmds,'|','-');
+
+	wsetscrreg(chat,0,y-3);
+    	wsetscrreg(cmds,y-3,y);
+
+	return;
 }
 
 int rndname(RothagaClient *rc)

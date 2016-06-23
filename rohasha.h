@@ -1,5 +1,9 @@
 #include <gcrypt.h>
+
+#ifndef RALLOC
+#define RALLOC
 #include "ralloc.h"
+#endif
 
 void gcry_init(void);									/* initialize the gcrypt() library -Jon */
 char *rohasha(char *str);								/* return the sha512 hash of any text -Jon */
