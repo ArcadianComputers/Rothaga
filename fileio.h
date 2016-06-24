@@ -15,7 +15,12 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <ncurses.h>
- 
+
+#ifndef NETIO_H_
+#define NETIO_H_
+#include "netio.h"
+#endif
+
 #include "Images/a.txt.h"
 #include "Images/b.txt.h"
 #include "Images/c.txt.h"
@@ -45,6 +50,6 @@
 
 void load_config(char *);
 void kill_server(int);
-void build_ui(void);
+void build_ui(RothagaClient *);
 
 #endif /* FILEIO_H_ */

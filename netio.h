@@ -48,23 +48,25 @@ typedef struct
 {
 	int c;							/* client number */
         int s;                                  		/* communication socket */
-        char *b;                                		/* communication buffer */
-	char *k;						/* keyboard buffer */
-        int nc;                                 		/* index position in com buffer */
-	int nk;							/* index position in kbd buffer */
-	char *cliname;						/* Temporary name for Client */
-	char *argyon;						/* Lists the reported user's name */
-	ftc f;							/* anon function pointer */
-	struct timespec ping;					/* Outgoing ping */
-	struct timespec pong;					/* Incoming pong */
-	struct timespec fstmes;					/* Timestamp the last message sent */
-	struct timespec sndmes;					/* Timestamp the current message */
 	int tr;							/* number of times reported */
 	int karma;						/* karma (duh) */
 	int kv;							/* karma loss vector */
 	int sm;							/* is the mac address set? */
-	unsigned char mac_address[6];				/* MAC address of this client */
+        int nc;                                 		/* index position in com buffer */
+	int nk;							/* index position in kbd buffer */
 	int vp;							/* voice point, earned at MIN_KARMA_PM */
+	int x;							/* NCURSES row */
+	int y;							/* NCURSES column */
+	ftc f;							/* anon function pointer */
+        char *b;                                		/* communication buffer */
+	char *k;						/* keyboard buffer */
+	char *cliname;						/* Temporary name for Client */
+	char *argyon;						/* Lists the reported user's name */
+	struct timespec ping;					/* Outgoing ping */
+	struct timespec pong;					/* Incoming pong */
+	struct timespec fstmes;					/* Timestamp the last message sent */
+	struct timespec sndmes;					/* Timestamp the current message */
+	unsigned char mac_address[6];				/* MAC address of this client */
 
 } RothagaClient;
 

@@ -5,8 +5,8 @@
  *      Author: Jonathan Pollock <jon@arcadiancomputers.com>
  */
 
-#include "fileio.h"
 #include "netio.h"
+#include "fileio.h"
 #include "encio.h"
 #include "agathor.h"
 #include "OSXTIME.h"
@@ -32,34 +32,28 @@ WINDOW *cmds;							/* the command line -Jon */
 int main (int argc, char **argv)
 {
 	int re = 0;						/* return code */
-	char 
-	x[1],y[1];						/* temp char holders for net/con io */
+	char x[1];						/* temp char holder for network i/o */
 	RothagaClient rc;					/* local client structure */
 	RothagaServer rs;					/* remote server structure */
 
-	x[0] = 0;
-	y[0] = 0;
-
-	build_ui();						/* build the user interface -Jon */
-
-	printf("%s\n",agathor);
-
-	printf("Welcome to %s version 1.0 Alpha\nTo view a list of commands type '/comlist'\n",argv[0]);
-
-	/* load_config(CONFIG_FILE) */
-	/* find_clients() */
-	/* show interface() */
-
+	x[0] = 0;						/* clear the net buffer */
 	memset(&rc,0,sizeof(rc));				/* clear out the client structure */
 	memset(&rs,0,sizeof(rs));				/* clear out the server structure */
 
-	rc.cliname = ralloc(NAME_LEN);
+	build_ui(&rc);						/* build the user interface -Jon */
 
+	wprintw(chat,"%s\n",agathor);
+	wrefresh(chat);
+	wprintw(chat,"Welcome to %s version 1.0 Alpha\nTo view a list of commands type '/comlist'\n",argv[0]);
+	wrefresh(chat);
+
+	rc.cliname = ralloc(NAME_LEN);
 	rs.sin.sin_family = AF_INET;
 
 	if (argc < 4)
 	{
-		printf("\nUsage: %s <name> <server> <port>\n",argv[0]);
+		wprintw(chat,"\nUsage: %s <name> <server> <port>\n",argv[0]);
+		wrefresh(chat);
 
 		rndname(&rc);
 
@@ -76,16 +70,18 @@ int main (int argc, char **argv)
 
 	rc.argyon = ralloc(NAME_LEN);
 
-	printf("Client chose name: %s\n", rc.cliname);
-	/* printf("plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
+	wprintw(chat,"Client chose name: %s\n", rc.cliname);
+	wrefresh(chat);
+
+	/* wprintw(chat,"plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
 		
 	load_config(LNX_CFG);			/* parse our config file -Jon */
-
 	net_connect(&rc,&rs);			/* connect to the network -Jon */
-
 	send_mac(&rc);				/* send our mac address FIRST! -Jon */
-
 	set_name(&rc,rc.cliname);		/* set our name as soon as we connect -Jon */
+
+	wmove(cmds,1,2);
+	wrefresh(cmds);
 
 	while(1)
 	{
@@ -97,7 +93,8 @@ int main (int argc, char **argv)
 			else if (errno == EPIPE || errno == EBADF || errno == ECONNRESET)
 			{
 				perror("read(): ");
-				printf("Server closed connection.\n");
+				wprintw(chat,"Server closed connection.\n");
+				wrefresh(chat);
 				break;
 			}
 		}
@@ -107,43 +104,42 @@ int main (int argc, char **argv)
 			rc.b[rc.nc] = x[0];
 			rc.nc++;
 
-			/* printf(">>> \"%c\" [%i]\n",x[0],x[0]); */
-
 			if ((x[0] == 10) && (rc.b[rc.nc-2] == 13))
 			{
 				parse_server_message(&rc);
+				wrefresh(chat);
 			}
 			
 		}
 
 		rconsole:
 
-		wrefresh(chat);
-        	wrefresh(cmds);
+		re = wgetch(cmds);
 
-		/* clrscr(); */
-		/* printf ("R> "); */
-
-		re = read(1,y,1);		/* read a byte from the console */
-
-		if (re == -1)
+		if (re == ERR)
 		{
 			if (errno == EAGAIN) continue;
+			else if (errno != EAGAIN)
+			{
+				perror("wgetnstr(): ");
+				return -1;
+			}
 		}
 
-		else
+		else if (re != ERR)
 		{
-			rc.k[rc.nk] = y[0];
+			
+			wrefresh(cmds);
+			rc.k[rc.nk] = re;
 			rc.nk++;
 
-			if (y[0] == 10)
+			if (re == 10)
 			{
 				parse_console_command(&rc);
+				rc.nk = 0;
 			}
 		}
 	}
-
-	/* sleep(1); */
 
 	close(rc.s);
 	free(rc.b);
@@ -152,23 +148,30 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-void build_ui(void)
+void build_ui(RothagaClient *rc)
 {
-	int x,y = 0;
 	initscr();						/* NCURSES screen init -Jon */
+	echo();
+	cbreak();
 
-	getmaxyx(stdscr,y,x);					/* get screen limits -Jon */
+	getmaxyx(stdscr,rc->y,rc->x);					/* get screen limits -Jon */
 
-  	chat = newwin(y-3,x,0,0);				/* create a split between i/o area -Jon */
-    	cmds = newwin(3,x,y-3,0);
+  	chat = newwin(rc->y-3,rc->x,0,0);				/* create a split between i/o area -Jon */
+    	cmds = newwin(3,rc->x,rc->y-3,0);
+
+	nodelay(chat, TRUE);					/* please dont block my loop ncurses -Jon */
+	nodelay(cmds, TRUE);
 
 	scrollok(chat,TRUE);
     	scrollok(cmds,TRUE);
     	box(chat,'|','-');
     	box(cmds,'|','-');
 
-	wsetscrreg(chat,0,y-3);
-    	wsetscrreg(cmds,y-3,y);
+	wsetscrreg(chat,0,rc->y-3);
+    	wsetscrreg(cmds,rc->y-3,rc->y-3);
+
+	wrefresh(chat);
+       	wrefresh(cmds);
 
 	return;
 }
@@ -225,7 +228,7 @@ int net_connect(RothagaClient *rc, RothagaServer *rs)
 
 	memcpy(&rc->mac_address,&mac_address,6);
 
-	printf("Client MAC Address: %02x:%02x:%02x:%02x:%02x:%02x\n",
+	wprintw(chat,"Client MAC Address: %02x:%02x:%02x:%02x:%02x:%02x\n",
 	rc->mac_address[0],rc->mac_address[1],rc->mac_address[2],rc->mac_address[3],rc->mac_address[4],rc->mac_address[5]);
 
 	re = connect(rc->s,(struct sockaddr *) &rs->sin,sizeof(rs->sin));
@@ -233,11 +236,11 @@ int net_connect(RothagaClient *rc, RothagaServer *rs)
 	if (re == -1)
 	{
 		perror("connect(): ");
-		printf("Failed to connect to %s on port %i\n",inet_ntoa(rs->sin.sin_addr),ntohs(rs->sin.sin_port));
+		wprintw(chat,"Failed to connect to %s on port %i\n",inet_ntoa(rs->sin.sin_addr),ntohs(rs->sin.sin_port));
 		return -1;
 	}
 
-	printf("Connected to %s:%i\n",inet_ntoa(rs->sin.sin_addr),ntohs(rs->sin.sin_port));
+	wprintw(chat,"Connected to %s:%i\n",inet_ntoa(rs->sin.sin_addr),ntohs(rs->sin.sin_port));
 
 	rc->b = ralloc(CLI_BUFR);
 	rc->k = ralloc(CLI_BUFR);
@@ -275,7 +278,7 @@ int parse_console_command(RothagaClient *c)
 	
 	if (strncmp(tmp,"/quit",5) == 0)
 	{
-		printf("\n\nAgathor, nooooooooo!\n\n");
+		wprintw(chat,"\n\nAgathor, nooooooooo!\n\n");
 		exit(0);
 	}
 
@@ -293,7 +296,7 @@ int parse_console_command(RothagaClient *c)
 	{	
 		tmprp = tmp+4;
 
-		printf("If you are sure you want to report <%s>, please type '/yes, if not please /no\n\n",tmprp);
+		wprintw(chat,"If you are sure you want to report <%s>, please type '/yes, if not please /no\n\n",tmprp);
 
 		memset(c->argyon,0,NAME_LEN);
 		snprintf(c->argyon,NAME_LEN-1,"%s",tmprp);
@@ -308,7 +311,7 @@ int parse_console_command(RothagaClient *c)
 
 	else if (strncmp(tmp,"/comlist",8) == 0)
 	{
-		printf("The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/kg <user>' will gift some of your karma to <user> \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
+		wprintw(chat,"The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/kg <user>' will gift some of your karma to <user> \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
 	}
 
 	else if (strncmp(tmp,"/kg",3) == 0)
@@ -336,7 +339,7 @@ int parse_console_command(RothagaClient *c)
 	{
 		if (c->f == NULL) goto pcend;
 		
-		printf("Guess not then...\n\n");
+		wprintw(chat,"Guess not then...\n\n");
 
 		if (c->argyon != NULL) free(c->argyon);
 		c->f = (void *)NULL;	/* don't leave the gun loaded */
@@ -382,7 +385,7 @@ int image_request(RothagaClient *c, char *request)
 
 	if (request == NULL)
 	{
-		printf("You must enter a valid command\n");
+		wprintw(chat,"You must enter a valid command\n");
 
 		return -1;
 	}
@@ -405,7 +408,7 @@ int send_karma(RothagaClient *c, char *details)
 
 	if ((gettok(details,' ',1) == NULL) || (gettok(details,' ',2) == NULL))
 	{
-		printf("To gift karma: /kg <name> <amount> Example: /kg Agathor 100\n");
+		wprintw(chat,"To gift karma: /kg <name> <amount> Example: /kg Agathor 100\n");
 	
 		return -1;
 	}
@@ -430,13 +433,13 @@ int ping_server(RothagaClient *c, char *cliname)
 
 	if(strlen(cliname) == 0)
 	{
-		printf("Sending ping\n");
+		wprintw(chat,"Sending ping\n");
 		write_to_server(c,"PN");
 	}
 
 	else 
 	{
-		printf("Sending ping to: %s\n", cliname);
+		wprintw(chat,"Sending ping to: %s\n", cliname);
 
 		tmp = ralloc(NAME_LEN);
 
@@ -451,7 +454,7 @@ int print_pong(RothagaClient *c)
 {
 	clock_gettime(CLOCK_MONOTONIC, &c->pong);
 
-	printf("Pong: %.03f milliseconds\n",((c->pong.tv_nsec - c->ping.tv_nsec) / 1.0e6));
+	wprintw(chat,"Pong: %.03f milliseconds\n",((c->pong.tv_nsec - c->ping.tv_nsec) / 1.0e6));
 
 	return 0;
 }
@@ -468,8 +471,8 @@ int send_private_message(RothagaClient *c, char *details)
 	
 	if ((gettok(details,' ',1) == NULL) || (gettok(details,' ',2) == NULL))
 	{
-		printf("To send a private message: /pm <name> <message>\n");
-		printf("For example: /pm Agathor Hello\n");
+		wprintw(chat,"To send a private message: /pm <name> <message>\n");
+		wprintw(chat,"For example: /pm Agathor Hello\n");
 
 		return -1;
 	}
@@ -514,7 +517,7 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 
 	if (reported == NULL)
 	{
-		printf("confrimation_of_report() called with null 'reported' variable");
+		wprintw(chat,"confrimation_of_report() called with null 'reported' variable");
 		return -1;
 	}
 
@@ -563,7 +566,7 @@ int write_to_server(RothagaClient *c, char *cmd)
 {
 	int re = -1;
 
-	/* printf("SENDING: %s\n",cmd); */
+	/* wprintw(chat,"SENDING: %s\n",cmd); */
 
 	re = write(c->s,cmd,strlen(cmd));
 
@@ -597,7 +600,7 @@ int parse_server_message(RothagaClient *c)
 
 	char_cleaner(tmp);
 
-	printf("*** %s\n",tmp);
+	wprintw(chat,"*** %s\n",tmp);
 
 	if (strncmp(tmp,"RP",2) == 0)
 	{
@@ -635,7 +638,7 @@ void char_cleaner(char *str)
 
 int new_report(RothagaClient *c,char *reported)
 {
-	printf("User %s has been reported, type /yes to agree or /no to disagree.\n",reported);
+	wprintw(chat,"User %s has been reported, type /yes to agree or /no to disagree.\n",reported);
 	c->f = (void *)confirmation_of_report;
 	
 	return 0;
@@ -702,11 +705,11 @@ void load_config(char *cfg)
 
 	if (fd == -1)
 	{
-		printf("Error opening %s!\n",cfg);
+		wprintw(chat,"Error opening %s!\n",cfg);
 		return;
 	}
 
-	printf("Opened config file %s!\n",cfg);
+	wprintw(chat,"Opened config file %s!\n",cfg);
 
 	return;
 }
