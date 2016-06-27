@@ -179,6 +179,9 @@ int main(int argc, char **argv)
 				}
 			}
 		} /* read through arrays -Jon */
+
+		usleep(1);	/* slowwwwwww dowwwwn */
+
 	} /* main while() loop */
 
 	return 0;	/* can't reach this as of 6/22/2016 -Jon */
