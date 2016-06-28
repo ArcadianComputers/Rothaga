@@ -43,14 +43,15 @@ int main (int argc, char **argv)
         signal(SIGINT, kill_rothaga);				/* stop the server on Ctrl-C -Jon */
         signal(SIGPIPE, SIG_IGN);				/* capture SIGPIPE and IGNORE IT -Jon */
 
-	build_ui(&rc);						/* build the user interface -Jon */
+	rc.cliname = ralloc(NAME_LEN);				/* allocate space for client's name -Jon */
+	rc.argyon = ralloc(NAME_LEN);				/* allocate space for yes/no reply -Jon */
 
-	rc.cliname = ralloc(NAME_LEN);
-	rs.sin.sin_family = AF_INET;
+	rs.sin.sin_family = AF_INET;				/* select ipv4 mode for now -Jon */
+
+	build_ui(&rc);						/* build the user interface -Jon */
 
 	if (argc < 4)
 	{
-		wmove(chat,rc.y,rc.x);
 		wprintw(chat,"\nUsage: %s <name> <server> <port>\n",argv[0]);
 		wrefresh(chat);
 
@@ -67,7 +68,6 @@ int main (int argc, char **argv)
 		rs.sin.sin_port		= htons(atoi(argv[3]));
 	}
 
-	rc.argyon = ralloc(NAME_LEN);
 
 	/* wprintw(chat,"plaintext = %s, enctext = %s\n",argv[2],encrp(argv[2])); */
 		
@@ -78,12 +78,10 @@ int main (int argc, char **argv)
 
 	/* wprintw(chat,"%s\n",agathor); */
 
-	wmove(chat,rc.y-3,2);
-	rprintw(chat,"Welcome to Rothaga version 1.0 Alpha\nTo view a list of commands type '/comlist'\n");
-	rprintw(chat,"Client chose name: ");
-	rprintw(chat,rc.cliname);
+	rprintw(chat,&rc,"Welcome to Rothaga version 1.0 Alpha\nTo view a list of commands type '/comlist'\n");
+	rprintw(chat,&rc,"Client chose name: ");
+	rprintw(chat,&rc,rc.cliname);
 
-	wmove(cmds,1,2);			/* set initial cursor position */
 	wrefresh(cmds);				/* refresh the window to show cursor */
 
 	while(1)
@@ -96,7 +94,7 @@ int main (int argc, char **argv)
 			else if (errno == EPIPE || errno == EBADF || errno == ECONNRESET)
 			{
 				perror("read(): ");
-				rprintw(chat,"Server closed connection.\n");
+				rprintw(chat,&rc,"Server closed connection.\n");
 				break;
 			}
 		}
@@ -153,6 +151,7 @@ int main (int argc, char **argv)
 
 			else
 			{
+				draw_ui(&rc);
 				wprintw(cmds,"%c",(char)re);
 			}
 		}
@@ -165,10 +164,9 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-void rprintw(WINDOW *w, char *str)
+void rprintw(WINDOW *w, RothagaClient *c, char *str)
 {
 	wprintw(w,str);
-	wprintw(w,"\n");
     	box(w,'|','-');
 	wrefresh(w);
 
@@ -183,8 +181,8 @@ void build_ui(RothagaClient *rc)
 
 	getmaxyx(stdscr,rc->y,rc->x);				/* get screen limits -Jon */
 
-  	chat = newwin(rc->y-3,rc->x,0,0);			/* create a split between i/o areas -Jon */
-    	cmds = newwin(3,rc->x,rc->y-3,0);
+	chat = newwin(rc->y-3,rc->x,0,0);
+	cmds = newwin(3,rc->x,rc->y-3,0);
 
 	nodelay(chat, TRUE);					/* please dont block my loop ncurses -Jon */
 	nodelay(cmds, TRUE);
@@ -197,14 +195,34 @@ void build_ui(RothagaClient *rc)
 	idlok(cmds, TRUE);					/* support hardware line delete -Jon */
 	idlok(chat, TRUE);
 
-	wsetscrreg(chat,0,rc->y-3);				/* set scrolling regions -Jon */
-    	wsetscrreg(cmds,rc->y-3,rc->y-3);			/* ^^^^^^^^^^^^^^^^^^^^^ -Jon */
-
-    	box(chat,'|','-');
+	box(chat,'|','-');
     	box(cmds,'|','-');
+
+	wmove(cmds,1,2);				/* set initial cursor position */
+	wmove(chat,rc->y-5,2);				/* set initial chat position */
 
 	wrefresh(chat);
        	wrefresh(cmds);
+
+	return;
+}
+
+void draw_ui(RothagaClient *rc)
+{
+	getmaxyx(stdscr,rc->y,rc->x);				/* get screen limits -Jon */
+
+	if (is_term_resized(rc->y, rc->x) == TRUE)
+	{
+		resizeterm(rc->y, rc->x);
+		box(chat,'|','-');
+    		box(cmds,'|','-');
+
+		wmove(cmds,1,2);				/* set initial cursor position */
+		wmove(chat,rc->y-5,2);				/* set initial chat position */
+
+		wrefresh(chat);
+       		wrefresh(cmds);
+	}
 
 	return;
 }
@@ -366,7 +384,7 @@ int parse_console_command(RothagaClient *c)
 
 	else if (strncmp(tmp,"/comlist",8) == 0)
 	{
-		rprintw(chat,"The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/kg <user>' will gift some of your karma to <user> \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
+		rprintw(chat,c,"The following is a list of commands: \n '/quit' will exit rothaga \n '/rp <user>' will send a report on <user> to everyone on the server, which they can confirm or deny \n '/kg <user>' will gift some of your karma to <user> \n '/ping' will ping the server \n '/sn <name>' will allow you to change your username \n '/yes' and '/no' are used for confirmation for various commands \n");
 	}
 
 	else if (strncmp(tmp,"/kg",3) == 0)
@@ -394,7 +412,7 @@ int parse_console_command(RothagaClient *c)
 	{
 		if (c->f == NULL) goto pcend;
 		
-		rprintw(chat,"Guess not then...\n\n");
+		rprintw(chat,c,"Guess not then...\n\n");
 
 		if (c->argyon != NULL) free(c->argyon);
 		c->f = (void *)NULL;	/* don't leave the gun loaded */
@@ -440,7 +458,7 @@ int image_request(RothagaClient *c, char *request)
 
 	if (request == NULL)
 	{
-		rprintw(chat,"You must enter a valid command\n");
+		rprintw(chat,c,"You must enter a valid command\n");
 
 		return -1;
 	}
@@ -463,7 +481,7 @@ int send_karma(RothagaClient *c, char *details)
 
 	if ((gettok(details,' ',1) == NULL) || (gettok(details,' ',2) == NULL))
 	{
-		rprintw(chat,"To gift karma: /kg <name> <amount> Example: /kg Agathor 100\n");
+		rprintw(chat,c,"To gift karma: /kg <name> <amount> Example: /kg Agathor 100\n");
 	
 		return -1;
 	}
@@ -526,8 +544,8 @@ int send_private_message(RothagaClient *c, char *details)
 	
 	if ((gettok(details,' ',1) == NULL) || (gettok(details,' ',2) == NULL))
 	{
-		rprintw(chat,"To send a private message: /pm <name> <message>\n");
-		rprintw(chat,"For example: /pm Agathor Hello\n");
+		rprintw(chat,c,"To send a private message: /pm <name> <message>\n");
+		rprintw(chat,c,"For example: /pm Agathor Hello\n");
 
 		return -1;
 	}
@@ -572,7 +590,7 @@ int confirmation_of_report(RothagaClient *c,char *reported)
 
 	if (reported == NULL)
 	{
-		rprintw(chat,"confrimation_of_report() called with null 'reported' variable");
+		rprintw(chat,c,"confrimation_of_report() called with null 'reported' variable");
 		return -1;
 	}
 
@@ -655,7 +673,7 @@ int parse_server_message(RothagaClient *c)
 
 	char_cleaner(tmp);
 
-	mvwprintw(chat,c->y-5,2,"*** %s (y:%i)(x:%i)\n",tmp,c->y-(c->y/3),c->x-(c->x/3));
+	wprintw(chat,"*** %s (y:%i)(x:%i)\n",tmp,c->y-5,2);
 	/* mvwprintw(chat,c->y-(c->y/3),c->x-(c->x/3),"*** %s (y:%i)(x:%i)\n",tmp,c->y-(c->y/3),c->x-(c->x/3)); */
 	wrefresh(chat);
 
@@ -773,7 +791,7 @@ void load_config(char *cfg)
 
 void kill_rothaga(int sig)
 {
-	rprintw(chat,"\n\nAgathor, nooooooooo!\n\n");
+	wprintw(chat,"\n\nAgathor, nooooooooo!\n\n");
         wprintw(chat,"\n\nCaught Ctrl-C (%i), shutting down!\n\n",sig);
 	endwin();
         exit(sig);

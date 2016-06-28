@@ -51,8 +51,9 @@
 void load_config(char *);
 void kill_server(int);
 void build_ui(RothagaClient *);
+void draw_ui(RothagaClient *);
 void backspace(RothagaClient *);
-void rprintw(WINDOW *, char *);
+void rprintw(WINDOW *, RothagaClient *, char *);
 void kill_rothaga(int);
 
 #endif /* FILEIO_H_ */
