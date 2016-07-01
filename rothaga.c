@@ -78,10 +78,10 @@ int main (int argc, char **argv)
 
 	/* wprintw(chat,"%s\n",agathor); */
 
-	rprintw(chat,&rc,"Welcome to Rothaga version 1.0 Alpha\nTo view a list of commands type '/comlist'\n");
-	rprintw(chat,&rc,"Client chose name: ");
-	rprintw(chat,&rc,rc.cliname);
+	wprintw(chat,"Welcome to Rothaga version 1.0 Alpha\nTo view a list of commands type '/comlist'\n");
+	wprintw(chat,"Client chose name: %s\n",rc.cliname);
 
+	wrefresh(chat);				/* refresh the window to show cursor */
 	wrefresh(cmds);				/* refresh the window to show cursor */
 
 	while(1)
@@ -138,8 +138,7 @@ int main (int argc, char **argv)
 				parse_console_command(&rc);
 				wmove(cmds,1,2);
 				wclrtoeol(cmds);
-    				box(chat,'|','-');
-    				box(cmds,'|','-');
+				box(cmds,'|','-');
 				wrefresh(cmds);
 				rc.nk = 0;
 			}
@@ -167,7 +166,6 @@ int main (int argc, char **argv)
 void rprintw(WINDOW *w, RothagaClient *c, char *str)
 {
 	wprintw(w,str);
-    	box(w,'|','-');
 	wrefresh(w);
 
 	return;
@@ -195,33 +193,27 @@ void build_ui(RothagaClient *rc)
 	idlok(cmds, TRUE);					/* support hardware line delete -Jon */
 	idlok(chat, TRUE);
 
-	box(chat,'|','-');
     	box(cmds,'|','-');
 
 	wmove(cmds,1,2);				/* set initial cursor position */
-	wmove(chat,rc->y-5,2);				/* set initial chat position */
-
-	wrefresh(chat);
        	wrefresh(cmds);
+
+	wmove(chat,rc->y-4,2);				/* set initial chat position */
+	wrefresh(chat);
 
 	return;
 }
 
 void draw_ui(RothagaClient *rc)
 {
-	getmaxyx(stdscr,rc->y,rc->x);				/* get screen limits -Jon */
-
-	if (is_term_resized(rc->y, rc->x) == TRUE)
+	if (is_term_resized(rc->y, rc->x))
 	{
 		resizeterm(rc->y, rc->x);
-		box(chat,'|','-');
     		box(cmds,'|','-');
-
 		wmove(cmds,1,2);				/* set initial cursor position */
-		wmove(chat,rc->y-5,2);				/* set initial chat position */
-
-		wrefresh(chat);
        		wrefresh(cmds);
+		wmove(chat,rc->y-4,2);				/* set initial chat position */
+		wrefresh(chat);
 	}
 
 	return;
@@ -233,19 +225,24 @@ void backspace(RothagaClient *rc)
 
 	noecho();
 	nocbreak();
-	getyx(cmds, y, x);
 
-	if (rc->x-1 > 1)
+	getyx(cmds, y, x);			/* get cursor position */
+
+	if (x >= 2 && y && (rc->nk > 1))
 	{
+		wprintw(chat,"backspace called()\n");
+		wrefresh(chat);
 		rc->k[rc->nk] = 0; 		/* get rid of last character -Jon */
 		rc->nk--;			/* decrement character counter -Jon */
-		rc->k[rc->nk] = 0;		/* get rid of this one too -Jon */
+		rc->k[rc->nk] = 0; 		/* get rid of last character -Jon */
 		rc->nk--;			/* decrement character counter -Jon */
-		wmove(cmds, y, x-1);
+		wmove(cmds,y,x-1);
 		wdelch(cmds);
-		cbreak();
+		box(cmds,'|','-');
 		wrefresh(cmds);
 	}
+
+	cbreak();
 
 	return;
 }
@@ -673,7 +670,7 @@ int parse_server_message(RothagaClient *c)
 
 	char_cleaner(tmp);
 
-	wprintw(chat,"*** %s (y:%i)(x:%i)\n",tmp,c->y-5,2);
+	wprintw(chat,"*** %s\n",tmp);
 	/* mvwprintw(chat,c->y-(c->y/3),c->x-(c->x/3),"*** %s (y:%i)(x:%i)\n",tmp,c->y-(c->y/3),c->x-(c->x/3)); */
 	wrefresh(chat);
 
