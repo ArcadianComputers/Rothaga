@@ -55,5 +55,6 @@ void draw_ui(RothagaClient *);
 void backspace(RothagaClient *);
 void rprintw(WINDOW *, RothagaClient *, char *);
 void kill_rothaga(int);
+void clear_chat(RothagaClient *);
 
 #endif /* FILEIO_H_ */

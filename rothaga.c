@@ -198,7 +198,7 @@ void build_ui(RothagaClient *rc)
 	wmove(cmds,1,2);				/* set initial cursor position */
        	wrefresh(cmds);
 
-	wmove(chat,rc->y-4,2);				/* set initial chat position */
+	wmove(chat,rc->y-4,0);				/* set initial chat position */
 	wrefresh(chat);
 
 	return;
@@ -212,7 +212,7 @@ void draw_ui(RothagaClient *rc)
     		box(cmds,'|','-');
 		wmove(cmds,1,2);				/* set initial cursor position */
        		wrefresh(cmds);
-		wmove(chat,rc->y-4,2);				/* set initial chat position */
+		wmove(chat,rc->y-4,0);				/* set initial chat position */
 		wrefresh(chat);
 	}
 
@@ -228,16 +228,18 @@ void backspace(RothagaClient *rc)
 
 	getyx(cmds, y, x);			/* get cursor position */
 
-	if (x >= 2 && y && (rc->nk > 1))
+	if (x > 2 && y && (rc->nk >= 1))
 	{
-		wprintw(chat,"backspace called()\n");
-		wrefresh(chat);
+		/* wprintw(chat,"backspace called()\n"); 
+		wrefresh(chat); */
+
 		rc->k[rc->nk] = 0; 		/* get rid of last character -Jon */
 		rc->nk--;			/* decrement character counter -Jon */
 		rc->k[rc->nk] = 0; 		/* get rid of last character -Jon */
 		rc->nk--;			/* decrement character counter -Jon */
 		wmove(cmds,y,x-1);
 		wdelch(cmds);
+		wclrtoeol(cmds);
 		box(cmds,'|','-');
 		wrefresh(cmds);
 	}
@@ -352,6 +354,11 @@ int parse_console_command(RothagaClient *c)
 		kill_rothaga(0);
 	}
 
+	else if (strncmp(tmp,"/clear",6) == 0)
+	{
+		clear_chat(c);
+	}
+
 	else if (strncmp(tmp,"/sn",3) == 0)
 	{
 		set_name(c,tmp+4);
@@ -427,6 +434,25 @@ int parse_console_command(RothagaClient *c)
 	free(tmp);
 
 	return 0;
+}
+
+void clear_chat(RothagaClient *c)
+{
+	getmaxyx(stdscr,c->y,c->x);			/* get new screen limits -Jon */
+
+	chat = newwin(c->y-3,c->x,0,0);			/* recreate the window */
+	wmove(chat,c->y-4,0);				/* set initial chat position */
+	nodelay(chat, TRUE);				/* please dont block my loop ncurses -Jon */
+	scrollok(chat,TRUE);				/* please let things scroll -Jon */
+	wrefresh(chat);					/* update the display */
+
+	cmds = newwin(3,c->x,c->y-3,0);
+	nodelay(cmds, TRUE);				/* please dont block my loop ncurses -Jon */
+	box(cmds,'|','-');				/* redraw cmd box */
+	wmove(cmds,1,2);
+	wrefresh(cmds);					/* update the display */
+
+	return;
 }
 
 int send_big_message(RothagaClient *c, char *msg)
